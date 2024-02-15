@@ -56,7 +56,6 @@ func createPageHandler(filePath string, _ fs.FileInfo, err error) error {
 }
 
 func main() {
-
 	if err := filepath.Walk(pageDir, createPageHandler); err != nil {
 		log.Fatal(err)
 	}
