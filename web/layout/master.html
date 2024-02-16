@@ -1,9 +1,13 @@
 <!doctype html>
-<html lang="en">
+<html
+  lang="en"
+  class="h-full bg-white dark:bg-black text-black dark:text-white"
+>
   <head>
     <title>Open Scanner</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="/assets/OpenScanner.png" />
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
     <script
@@ -12,7 +16,28 @@
       crossorigin="anonymous"
     ></script>
   </head>
-  <body>
-    <div class="content">{{block "body" .}}{{end}}</div>
+  <body class="h-full flex flex-col">
+    <div class="grow shrink flex justify-center">
+      <div class="grow shrink w-100 max-w-screen-2xl">
+        <div class="content p-3">{{block "body" .}}{{end}}</div>
+      </div>
+    </div>
+    <div class="grow-0 shrink-0 flex justify-center p-3 border-t-2">
+      <div class="grow shrink w-100 max-w-screen-2xl">
+        <div class="flex flex-row items-center">
+          <img
+            class="inline-block dark:hidden w-11 me-3"
+            src="/assets/OpenScanner.svg"
+            alt=""
+          />
+          <img
+            class="dark:inline-block w-11 me-3"
+            src="/assets/OpenScannerWhite.svg"
+            alt=""
+          />
+          <h1 class="text-2xl">Open Scanner</h1>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

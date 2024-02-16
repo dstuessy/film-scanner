@@ -56,8 +56,11 @@ func main() {
 		Endpoint: google.Endpoint,
 	}
 
+	fs := http.FileServer(http.Dir("web/assets"))
+	http.Handle("/assets/", http.StripPrefix("/assets/", fs))
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie(accessTokenCookieName)
+		_, err := r.Cookie(accessTokenCookieName)
 		if err != nil {
 			switch {
 			case errors.Is(err, http.ErrNoCookie):
@@ -68,16 +71,8 @@ func main() {
 				log.Println(err)
 				http.Error(w, "server error", http.StatusInternalServerError)
 			}
-		} else {
-			data := struct {
-				AccessToken string
-			}{
-				AccessToken: cookie.Value,
-			}
-
-			if err := renderPage(w, "/index.html", data); err != nil {
-				log.Fatal(err)
-			}
+		} else if err := renderPage(w, "/index.html", nil); err != nil {
+			log.Fatal(err)
 		}
 	})
 
