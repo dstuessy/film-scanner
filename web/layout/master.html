@@ -17,9 +17,11 @@
     ></script>
   </head>
   <body class="h-full flex flex-col">
-    <div class="grow shrink flex justify-center">
-      <div class="grow shrink w-100 max-w-screen-2xl">
-        <div class="content p-3">{{block "body" .}}{{end}}</div>
+    <div class="grow shrink flex flex-col justify-center">
+      <div class="grow shrink flex flex-col w-100 max-w-screen-2xl">
+        <div class="grow shrink flex flex-col content p-3">
+          {{block "body" .}}{{end}}
+        </div>
       </div>
     </div>
     <div class="grow-0 shrink-0 flex justify-center p-3 border-t-2">
@@ -35,7 +37,7 @@
             src="/assets/OpenScannerWhite.svg"
             alt=""
           />
-          <h1 class="text-2xl">Open Scanner</h1>
+          <span class="text-2xl">Open Scanner</span>
         </div>
       </div>
     </div>

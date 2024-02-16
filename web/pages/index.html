@@ -1,3 +1,10 @@
 {{define "body"}}
-<p>Welcome to Open Scanner</p>
+<h1 class="text-3xl mb-2">Your Library</h1>
+<div class="grid">
+  {{ if .Files }} {{ range .Files }}
+  <div>{{ .Name }}</div>
+  {{ end }} {{ else }}
+  <p>No files found</p>
+  {{ end }}
+</div>
 {{end}}
