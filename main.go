@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -16,7 +15,6 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
-	"google.golang.org/api/option"
 )
 
 const layoutDir = "web/layout"
@@ -24,55 +22,9 @@ const pageDir = "web/pages"
 const componentDir = "web/components"
 
 const accessTokenCookieName = "access_token"
+const photoDirectoryCookieName = "photo_directory"
 
 var oauthConf *oauth2.Config
-
-func renderPage(w http.ResponseWriter, path string, data interface{}) error {
-	layoutTmpl, err := template.ParseFiles(fmt.Sprintf("%s/master.html", layoutDir))
-	if err != nil {
-		return err
-	}
-
-	pageTmpl, err := template.Must(layoutTmpl.Clone()).ParseFiles(fmt.Sprintf("%s%s", pageDir, path))
-	if err != nil {
-		return err
-	}
-
-	if err := pageTmpl.Execute(w, data); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func renderComponent(w http.ResponseWriter, path string, data interface{}) error {
-	cmpTmpl, err := template.ParseFiles(fmt.Sprintf("%s%s", componentDir, path))
-	if err != nil {
-		return err
-	}
-
-	if err := cmpTmpl.Execute(w, data); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func getToken(r *http.Request) (*oauth2.Token, error) {
-	cookie, err := r.Cookie(accessTokenCookieName)
-	if err != nil {
-		return nil, err
-	}
-
-	decoded, err := base64.URLEncoding.DecodeString(cookie.Value)
-
-	token := &oauth2.Token{}
-	if err := json.Unmarshal(decoded, token); err != nil {
-		return nil, err
-	}
-
-	return token, err
-}
 
 func checkToken(w http.ResponseWriter, r *http.Request) (*oauth2.Token, error) {
 	token, err := getToken(r)
@@ -119,29 +71,32 @@ func main() {
 			return
 		}
 
-		ctx := context.Background()
+		pd, err := getPhotoDirectory(r)
+		if err != nil && !errors.Is(err, http.ErrNoCookie) {
+			log.Fatal(err)
+		}
 
-		srv, err := drive.NewService(ctx, option.WithTokenSource(oauthConf.TokenSource(ctx, token)))
+		srv, err := getDriveService(token, getContext())
 		if err != nil {
-			log.Fatalf("Unable to retrieve Drive client: %v", err)
+			if errors.Is(err, new(TokenExpiredError)) {
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
+				return
+			} else {
+				log.Fatal(err)
+			}
 		}
 
-		files, err2 := srv.Files.List().
-			PageSize(10).
-			Q("mimeType='application/vnd.google-apps.folder' and name contains 'Photography'").
-			Fields("nextPageToken, files(id, name)").
-			Spaces("drive").
-			Do()
-		if err2 != nil {
-			log.Fatalf("Unable to retrieve files: %v", err2)
+		files, err := listFiles(srv, "")
+		if err != nil {
+			log.Fatal(err)
 		}
-
-		fmt.Println(files.Files, files.HTTPStatusCode)
 
 		data := struct {
-			Files []*drive.File
+			PhotoDirectory string
+			Files          []*drive.File
 		}{
-			Files: files.Files,
+			PhotoDirectory: pd,
+			Files:          files.Files,
 		}
 
 		if err := renderPage(w, "/index.html", data); err != nil {
