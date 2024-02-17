@@ -1,1 +1,8 @@
-<div>Files list...</div>
+{{ if .Files }} {{ range .Files }}
+<div>
+  <span>{{ .Name }}</span>
+  <span>{{ .Id }}</span>
+</div>
+{{ end }} {{ else }}
+<p>No files...</p>
+{{ end }}
