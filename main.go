@@ -77,7 +77,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		if renderComponent(w, "/files.html", files) != nil {
+		if err := renderComponent(w, "/files.html", files.Files); err != nil {
 			log.Fatal(err)
 		}
 	})
