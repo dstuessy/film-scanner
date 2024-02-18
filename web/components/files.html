@@ -1,9 +1,14 @@
 {{ if not (eq (len .) 0) }} {{ range . }}
-<div class="py-3">
-  <span class="block">{{ .Name }}</span>
-  <span class="block">{{ .Id }}</span>
-  <span class="block">{{ .Parents }}</span>
+<div class="shrink flex w-full">
+  <div class="py-3">
+    <span class="block">{{ .Name }}</span>
+    <span class="block">{{ .Id }}</span>
+    <span class="block">{{ .Parents }}</span>
+  </div>
 </div>
 {{ end }} {{ else }}
-<p>No files in directory yet</p>
+<div class="grow shrink flex flex-col justify-center items-center">
+  <span class="block text-xl mb-2">No projects started yet</span>
+  <span class="block text-md">Start a new project below</span>
+</div>
 {{ end }}

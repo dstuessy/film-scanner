@@ -1,22 +1,25 @@
 {{define "body"}}
-<h1 class="text-3xl mb-2">Your Library</h1>
+<h1 class="text-3xl mb-6">Your Library</h1>
 
-<div class="grid grow shrink">
-  <div
-    id="file-list"
-    class="grow shrink flex flex-col justify-center items-center"
+{{ if eq .Directory nil }}
+<div
+  id="file-list"
+  class="grow shrink flex flex-col justify-center items-center"
+>
+  <span class="block mb-6 text-center"
+    >No workspace available on Google Drive.</span
   >
-    {{ if eq .Directory nil }}
-    <span class="block mb-6 text-center">No photo directory available.</span>
 
-    <form hx-post="/resource/photo-directory/create" hx-target="#file-list">
-      <span class="block text-center">
-        <button type="submit" class="p-3 px-5 border rounded rounded-md">
-          Create Directory
-        </button>
-      </span>
-    </form>
-    {{ else }} {{ template "files.html" .Files }} {{ end }}
-  </div>
+  <form
+    hx-post="/resource/photo-directory/create"
+    hx-target="#file-list"
+    hx-swap="outerHTML"
+  >
+    <span class="block text-center">
+      <button type="submit" class="p-3 px-5 border rounded rounded-md">
+        Create a workspace
+      </button>
+    </span>
+  </form>
 </div>
-{{end}}
+{{ else }} {{ template "files.html" .Files }} {{ end }} {{end}}
