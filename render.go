@@ -17,6 +17,11 @@ func renderPage(w http.ResponseWriter, path string, data interface{}) error {
 		return err
 	}
 
+	cmpGlob := fmt.Sprintf("%s/*.html", componentDir)
+	if _, err := pageTmpl.ParseGlob(cmpGlob); err != nil {
+		return err
+	}
+
 	if err := pageTmpl.Execute(w, data); err != nil {
 		return err
 	}

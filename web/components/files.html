@@ -1,9 +1,9 @@
-{{ if .Files }} {{ range .Files }}
+{{ if not (eq (len .) 0) }} {{ range . }}
 <div class="py-3">
   <span class="block">{{ .Name }}</span>
   <span class="block">{{ .Id }}</span>
   <span class="block">{{ .Parents }}</span>
 </div>
 {{ end }} {{ else }}
-<p>No files...</p>
+<p>No files in directory yet</p>
 {{ end }}

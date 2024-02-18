@@ -16,15 +16,7 @@
         </button>
       </span>
     </form>
-    {{ else }} {{ if .Files }} {{ range .Files }}
-    <div class="py-3">
-      <span class="block">{{ .Name }}</span>
-      <span class="block">{{ .Id }}</span>
-      <span class="block">{{ .Parents }}</span>
-    </div>
-    {{ end }} {{ else }}
-    <p>No files in directory yet</p>
-    {{ end }} {{ end }}
+    {{ else }} {{ template "files.html" .Files }} {{ end }}
   </div>
 </div>
 {{end}}
