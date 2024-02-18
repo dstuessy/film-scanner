@@ -1,44 +1,30 @@
 {{define "body"}}
 <h1 class="text-3xl mb-2">Your Library</h1>
-<div class="grid">
-  {{ if not .PhotoDirectory }}
-  <form hx-post="/photo-directory/set" hx-target="#file-list">
-    <span class="flex">
-      <input
-        class="grow shrink me-4 bg-transparent px-0 border-0 border-b-2 focus:border-0 focus:border-b-2 focus-visible:ring-0 focus:outline-none !border-black dark:!border-white"
-        type="text"
-        name="photo_directory"
-        placeholder="Search for photo library"
-      />
-      <button class="grow-0 shrink-0">
-        <svg
-          class="fill-white"
-          width="24"
-          height="24"
-          xmlns="http://www.w3.org/2000/svg"
-          fill-rule="evenodd"
-          clip-rule="evenodd"
-        >
-          <path
-            d="M15.853 16.56c-1.683 1.517-3.911 2.44-6.353 2.44-5.243 0-9.5-4.257-9.5-9.5s4.257-9.5 9.5-9.5 9.5 4.257 9.5 9.5c0 2.442-.923 4.67-2.44 6.353l7.44 7.44-.707.707-7.44-7.44zm-6.353-15.56c4.691 0 8.5 3.809 8.5 8.5s-3.809 8.5-8.5 8.5-8.5-3.809-8.5-8.5 3.809-8.5 8.5-8.5z"
-          />
-        </svg>
-      </button>
-    </span>
-  </form>
-  {{ else }}
-  <span class="flex items-center"><span class="py-4">{{ .PhotoDirectory }}<span class="underlined">Clear</span>
-<span></span></span>
-  {{ end }}
-  <div id="file-list" class="py-5">
-    {{ if .Files }} {{ range .Files }}
-    <div>
-      <span>{{ .Name }}</span>
-      <span>{{ .Id }}</span>
+
+<div class="grid grow shrink">
+  <div
+    id="file-list"
+    class="grow shrink flex flex-col justify-center items-center"
+  >
+    {{ if eq .Directory nil }}
+    <span class="block mb-6 text-center">No photo directory available.</span>
+
+    <form hx-post="/resource/photo-directory/create" hx-target="#file-list">
+      <span class="block text-center">
+        <button type="submit" class="p-3 px-5 border rounded rounded-md">
+          Create Directory
+        </button>
+      </span>
+    </form>
+    {{ else }} {{ if .Files }} {{ range .Files }}
+    <div class="py-3">
+      <span class="block">{{ .Name }}</span>
+      <span class="block">{{ .Id }}</span>
+      <span class="block">{{ .Parents }}</span>
     </div>
     {{ end }} {{ else }}
-    <p>No files found</p>
-    {{ end }}
+    <p>No files in directory yet</p>
+    {{ end }} {{ end }}
   </div>
 </div>
 {{end}}

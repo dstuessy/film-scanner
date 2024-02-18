@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,6 +19,8 @@ const componentDir = "web/components"
 const accessTokenCookieName = "access_token"
 const photoDirectoryCookieName = "photo_directory"
 
+const driveDirName = "Open Scanner"
+
 var oauthConf *oauth2.Config
 
 func init() {
@@ -32,7 +35,6 @@ func init() {
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.email",
 			"https://www.googleapis.com/auth/userinfo.profile",
-			"https://www.googleapis.com/auth/drive",
 			"https://www.googleapis.com/auth/drive.file",
 		},
 		Endpoint: google.Endpoint,
@@ -49,17 +51,33 @@ func main() {
 
 	http.HandleFunc("/oauth2callback", authCallbackHandler)
 
-	http.HandleFunc("/photo-directory/set", func(w http.ResponseWriter, r *http.Request) {
-		photoDirectory := r.FormValue("photo_directory")
-
-		fmt.Println(photoDirectory)
-
-		if photoDirectory != "" {
-			setPhotoDirectory(w, photoDirectory)
+	http.HandleFunc("/resource/photo-directory/create", func(w http.ResponseWriter, r *http.Request) {
+		token, err := checkToken(w, r)
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		err := renderComponent(w, "/files.html", nil)
+		fileSrv, err := getDriveFileService(token, getContext())
 		if err != nil {
+			if errors.Is(err, new(TokenExpiredError)) {
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
+				return
+			} else {
+				log.Fatal(err)
+			}
+		}
+
+		folder, err := createFolder(fileSrv, driveDirName, "")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		files, err := listFiles(fileSrv, folder.Id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if renderComponent(w, "/files.html", files) != nil {
 			log.Fatal(err)
 		}
 	})

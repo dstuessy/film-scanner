@@ -14,12 +14,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pd, err := getPhotoDirectory(r)
-	if err != nil && !errors.Is(err, http.ErrNoCookie) {
-		log.Fatal(err)
-	}
-
-	srv, err := getDriveService(token, getContext())
+	srv, err := getDriveFileService(token, getContext())
 	if err != nil {
 		if errors.Is(err, new(TokenExpiredError)) {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -29,17 +24,28 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	files, err := listFiles(srv, "")
+	dir, err := findFolder(srv, driveDirName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dirId := ""
+
+	if dir != nil {
+		dirId = dir.Id
+	}
+
+	files, err := listFiles(srv, dirId)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	data := struct {
-		PhotoDirectory string
-		Files          []*drive.File
+		Directory *drive.File
+		Files     []*drive.File
 	}{
-		PhotoDirectory: pd,
-		Files:          files.Files,
+		Directory: dir,
+		Files:     files.Files,
 	}
 
 	if err := renderPage(w, "/index.html", data); err != nil {
