@@ -50,6 +50,12 @@ func main() {
 
 	http.HandleFunc("/oauth2callback", authCallbackHandler)
 
+	http.HandleFunc("/scan/new", func(w http.ResponseWriter, r *http.Request) {
+		if err := renderPage(w, "/new.html", nil); err != nil {
+			log.Fatal(err)
+		}
+	})
+
 	http.HandleFunc("/resource/workspace/create", func(w http.ResponseWriter, r *http.Request) {
 		token, err := checkToken(w, r)
 		if err != nil {
