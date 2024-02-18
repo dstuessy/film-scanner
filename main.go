@@ -17,7 +17,6 @@ const pageDir = "web/pages"
 const componentDir = "web/components"
 
 const accessTokenCookieName = "access_token"
-const photoDirectoryCookieName = "photo_directory"
 
 const driveDirName = "Open Scanner"
 
@@ -51,7 +50,7 @@ func main() {
 
 	http.HandleFunc("/oauth2callback", authCallbackHandler)
 
-	http.HandleFunc("/resource/photo-directory/create", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/resource/workspace/create", func(w http.ResponseWriter, r *http.Request) {
 		token, err := checkToken(w, r)
 		if err != nil {
 			log.Fatal(err)
