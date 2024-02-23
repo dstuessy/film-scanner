@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -104,4 +105,22 @@ func listFiles(srv *drive.Service, parentId string) (*drive.FileList, error) {
 	}
 
 	return files, nil
+}
+
+func saveImage(srv *drive.Service, img []byte, name string, parentId string) (*drive.File, error) {
+	f := &drive.File{
+		Name:     name,
+		MimeType: "image/jpeg",
+	}
+
+	if parentId != "" {
+		f.Parents = []string{parentId}
+	}
+
+	r, err := srv.Files.Create(f).Media(bytes.NewReader(img)).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
