@@ -4,6 +4,7 @@ go 1.21.7
 
 require (
 	github.com/joho/godotenv v1.5.1
+	gocv.io/x/gocv v0.35.0
 	golang.org/x/oauth2 v0.17.0
 	google.golang.org/api v0.165.0
 )
