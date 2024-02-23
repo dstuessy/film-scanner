@@ -66,6 +66,11 @@ func main() {
 	http.HandleFunc("/oauth2callback", authCallbackHandler)
 
 	http.HandleFunc("/scan/new", func(w http.ResponseWriter, r *http.Request) {
+		_, err := checkToken(w, r)
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+		}
+
 		if err := renderPage(w, "/new.html", nil); err != nil {
 			log.Fatal(err)
 		}
@@ -74,7 +79,7 @@ func main() {
 	http.HandleFunc("/resource/workspace/create", func(w http.ResponseWriter, r *http.Request) {
 		token, err := checkToken(w, r)
 		if err != nil {
-			log.Fatal(err)
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 		}
 
 		fileSrv, err := getDriveFileService(token, getContext())
@@ -103,6 +108,11 @@ func main() {
 	})
 
 	http.HandleFunc("/preview", func(w http.ResponseWriter, r *http.Request) {
+		_, err := checkToken(w, r)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		w.Header().Set("Content-Type", fmt.Sprintf("multipart/x-mixed-replace; boundary=%s", boundaryWord))
 		w.Header().Set("Cache-Control", "no-cache")
