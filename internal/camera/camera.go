@@ -8,7 +8,7 @@ import (
 
 var webcam *gocv.VideoCapture
 
-func Setup() error {
+func Open() error {
 	c, err := gocv.OpenVideoCapture(0)
 	if err != nil {
 		return err

@@ -48,7 +48,7 @@ func init() {
 
 	frameInterval = 50 * time.Millisecond
 
-	if err := camera.Setup(); err != nil {
+	if err := camera.Open(); err != nil {
 		log.Fatal(err)
 	}
 }
