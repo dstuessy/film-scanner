@@ -147,6 +147,35 @@ func main() {
 		log.Println("Stream disconnected")
 	})
 
+	http.HandleFunc("/scan/capture", func(w http.ResponseWriter, r *http.Request) {
+		token, err := checkToken(w, r)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		srv, err := getDriveFileService(token, getContext())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		dir, err := findFolder(srv, driveDirName)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		img, err := camera.CaptureFrame()
+		if err != nil {
+			log.Println(err)
+		}
+
+		name := fmt.Sprintf("image-%d.jpg", time.Now().Unix())
+		if _, err := saveImage(srv, img, name, dir.Id); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	})
+
 	fmt.Println("Server is running on port 8080")
 	http.ListenAndServe(":8080", nil)
 }

@@ -1,6 +1,12 @@
 {{define "body"}}
-<div class="grow flex flex-col justify-center">
+<div class="grow relative flex flex-col justify-center">
   <img class="" src="/preview" alt="" />
+  <div class="absolute bottom-4 end-0 start-0 text-center">
+    <button
+      hx-post="/scan/capture"
+      class="grow-0 shrink-0 w-16 h-16 border border-4 rounded rounded-full overflow-hidden before:bg-white before:block before:bottom-0 before:end-0 before:h-full before:opacity-20 before:start-0 before:top-0 before:w-full"
+    ></button>
+  </div>
 </div>
 {{end}} {{define "footer"}}
 <a
