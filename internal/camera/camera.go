@@ -27,18 +27,16 @@ func CaptureFrame() ([]byte, error) {
 	img := gocv.NewMat()
 	defer img.Close()
 
-	for {
-		if ok := webcam.Read(&img); !ok {
-			return nil, errors.New("cannot read from webcam")
-		}
-		if img.Empty() {
-			continue
-		}
-		buf, err := gocv.IMEncode(".jpg", img)
-		if err != nil {
-			return nil, err
-		}
-
-		return buf.GetBytes(), nil
+	if ok := webcam.Read(&img); !ok {
+		return nil, errors.New("cannot read from webcam")
 	}
+	if img.Empty() {
+		return nil, errors.New("empty frame")
+	}
+	buf, err := gocv.IMEncode(".jpg", img)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.GetBytes(), nil
 }
