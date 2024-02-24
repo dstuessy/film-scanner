@@ -1,53 +1,30 @@
-package main
+package drive
 
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
-	"log"
-	"net/http"
 	"time"
+
+	"github.com/dstuessy/film-scanner/internal/auth"
 
 	"golang.org/x/oauth2"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 )
 
-type TokenExpiredError struct{}
-
-func (m *TokenExpiredError) Error() string {
-	return "Token Expired"
-}
-
-func getContext() context.Context {
+func GetContext() context.Context {
 	return context.Background()
 }
 
-func checkToken(w http.ResponseWriter, r *http.Request) (*oauth2.Token, error) {
-	token, err := getToken(r)
-	if err != nil {
-		switch {
-		case errors.Is(err, http.ErrNoCookie):
-			log.Println("Access Token cookie not found")
-			log.Println(err)
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-		default:
-			log.Println(err)
-			http.Error(w, "server error", http.StatusInternalServerError)
-		}
-	}
-	return token, err
-}
-
-func getDriveFileService(token *oauth2.Token, ctx context.Context) (*drive.Service, error) {
+func GetDriveFileService(token *oauth2.Token, ctx context.Context) (*drive.Service, error) {
 	if token.Expiry.Before(time.Now()) {
-		return nil, new(TokenExpiredError)
+		return nil, new(auth.TokenExpiredError)
 	}
-	return drive.NewService(ctx, option.WithTokenSource(oauthConf.TokenSource(ctx, token)))
+	return drive.NewService(ctx, option.WithTokenSource(auth.OauthConf.TokenSource(ctx, token)))
 }
 
-func createFolder(srv *drive.Service, name string, parentId string) (*drive.File, error) {
+func CreateFolder(srv *drive.Service, name string, parentId string) (*drive.File, error) {
 	f := &drive.File{
 		Name:     name,
 		MimeType: "application/vnd.google-apps.folder",
@@ -65,7 +42,7 @@ func createFolder(srv *drive.Service, name string, parentId string) (*drive.File
 	return r, nil
 }
 
-func findFolder(srv *drive.Service, name string) (*drive.File, error) {
+func FindFolder(srv *drive.Service, name string) (*drive.File, error) {
 	q := fmt.Sprintf("mimeType='application/vnd.google-apps.folder' and name='%s' and trashed=false", name)
 
 	files, err := srv.Files.List().
@@ -85,7 +62,7 @@ func findFolder(srv *drive.Service, name string) (*drive.File, error) {
 	return files.Files[0], nil
 }
 
-func listFiles(srv *drive.Service, parentId string) (*drive.FileList, error) {
+func ListFiles(srv *drive.Service, parentId string) (*drive.FileList, error) {
 	q := "mimeType='image/jpeg' or mimeType='application/vnd.google-apps.folder' and trashed=false"
 
 	if parentId != "" {
@@ -107,7 +84,7 @@ func listFiles(srv *drive.Service, parentId string) (*drive.FileList, error) {
 	return files, nil
 }
 
-func saveImage(srv *drive.Service, img []byte, name string, parentId string) (*drive.File, error) {
+func SaveImage(srv *drive.Service, img []byte, name string, parentId string) (*drive.File, error) {
 	f := &drive.File{
 		Name:     name,
 		MimeType: "image/jpeg",

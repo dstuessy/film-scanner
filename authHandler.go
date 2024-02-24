@@ -7,13 +7,15 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/dstuessy/film-scanner/internal/auth"
 )
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Url string
 	}{
-		Url: oauthConf.AuthCodeURL("state"),
+		Url: auth.OauthConf.AuthCodeURL("state"),
 	}
 
 	err := renderPage(w, "/login.html", data)
@@ -23,7 +25,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func authCallbackHandler(w http.ResponseWriter, r *http.Request) {
-	tok, err := oauthConf.Exchange(
+	tok, err := auth.OauthConf.Exchange(
 		context.Background(), r.URL.Query().Get("code"))
 	if err != nil {
 		log.Fatal(err)
@@ -35,7 +37,7 @@ func authCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie := &http.Cookie{
-		Name:    accessTokenCookieName,
+		Name:    auth.AccessTokenCookieName,
 		Value:   base64.URLEncoding.EncodeToString(tokenJson),
 		Expires: time.Now().Add(time.Hour * 24),
 	}

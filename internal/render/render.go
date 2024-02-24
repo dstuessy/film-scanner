@@ -1,4 +1,4 @@
-package main
+package render
 
 import (
 	"fmt"
@@ -6,7 +6,11 @@ import (
 	"net/http"
 )
 
-func renderPage(w http.ResponseWriter, path string, data interface{}) error {
+const layoutDir = "web/layout"
+const pageDir = "web/pages"
+const componentDir = "web/components"
+
+func RenderPage(w http.ResponseWriter, path string, data interface{}) error {
 	layoutTmpl, err := template.ParseFiles(fmt.Sprintf("%s/master.html", layoutDir))
 	if err != nil {
 		return err
@@ -29,7 +33,7 @@ func renderPage(w http.ResponseWriter, path string, data interface{}) error {
 	return nil
 }
 
-func renderComponent(w http.ResponseWriter, path string, data interface{}) error {
+func RenderComponent(w http.ResponseWriter, path string, data interface{}) error {
 	cmpTmpl, err := template.ParseFiles(fmt.Sprintf("%s%s", componentDir, path))
 	if err != nil {
 		return err
