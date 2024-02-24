@@ -5,18 +5,21 @@ import (
 	"log"
 	"net/http"
 
-	"google.golang.org/api/drive/v3"
+	"github.com/dstuessy/film-scanner/internal/auth"
+	"github.com/dstuessy/film-scanner/internal/drive"
+	"github.com/dstuessy/film-scanner/internal/render"
+	gdrive "google.golang.org/api/drive/v3"
 )
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	token, err := checkToken(w, r)
+	token, err := auth.CheckToken(w, r)
 	if err != nil {
 		return
 	}
 
-	srv, err := getDriveFileService(token, getContext())
+	srv, err := drive.GetDriveFileService(token, drive.GetContext())
 	if err != nil {
-		if errors.Is(err, new(TokenExpiredError)) {
+		if errors.Is(err, new(auth.TokenExpiredError)) {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		} else {
@@ -24,7 +27,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	dir, err := findFolder(srv, driveDirName)
+	dir, err := drive.FindFolder(srv, drive.DriveDirName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,20 +38,20 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		dirId = dir.Id
 	}
 
-	files, err := listFiles(srv, dirId)
+	files, err := drive.ListFiles(srv, dirId)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	data := struct {
-		Directory *drive.File
-		Files     []*drive.File
+		Directory *gdrive.File
+		Files     []*gdrive.File
 	}{
 		Directory: dir,
 		Files:     files.Files,
 	}
 
-	if err := renderPage(w, "/index.html", data); err != nil {
+	if err := render.RenderPage(w, "/index.html", data); err != nil {
 		log.Fatal(err)
 	}
 }

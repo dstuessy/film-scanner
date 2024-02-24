@@ -9,23 +9,25 @@ import (
 	"github.com/dstuessy/film-scanner/internal/auth"
 
 	"golang.org/x/oauth2"
-	"google.golang.org/api/drive/v3"
+	gdrive "google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 )
+
+const DriveDirName = "Open Scanner"
 
 func GetContext() context.Context {
 	return context.Background()
 }
 
-func GetDriveFileService(token *oauth2.Token, ctx context.Context) (*drive.Service, error) {
+func GetDriveFileService(token *oauth2.Token, ctx context.Context) (*gdrive.Service, error) {
 	if token.Expiry.Before(time.Now()) {
 		return nil, new(auth.TokenExpiredError)
 	}
-	return drive.NewService(ctx, option.WithTokenSource(auth.OauthConf.TokenSource(ctx, token)))
+	return gdrive.NewService(ctx, option.WithTokenSource(auth.OauthConf.TokenSource(ctx, token)))
 }
 
-func CreateFolder(srv *drive.Service, name string, parentId string) (*drive.File, error) {
-	f := &drive.File{
+func CreateFolder(srv *gdrive.Service, name string, parentId string) (*gdrive.File, error) {
+	f := &gdrive.File{
 		Name:     name,
 		MimeType: "application/vnd.google-apps.folder",
 	}
@@ -42,7 +44,7 @@ func CreateFolder(srv *drive.Service, name string, parentId string) (*drive.File
 	return r, nil
 }
 
-func FindFolder(srv *drive.Service, name string) (*drive.File, error) {
+func FindFolder(srv *gdrive.Service, name string) (*gdrive.File, error) {
 	q := fmt.Sprintf("mimeType='application/vnd.google-apps.folder' and name='%s' and trashed=false", name)
 
 	files, err := srv.Files.List().
@@ -62,7 +64,7 @@ func FindFolder(srv *drive.Service, name string) (*drive.File, error) {
 	return files.Files[0], nil
 }
 
-func ListFiles(srv *drive.Service, parentId string) (*drive.FileList, error) {
+func ListFiles(srv *gdrive.Service, parentId string) (*gdrive.FileList, error) {
 	q := "mimeType='image/jpeg' or mimeType='application/vnd.google-apps.folder' and trashed=false"
 
 	if parentId != "" {
@@ -84,8 +86,8 @@ func ListFiles(srv *drive.Service, parentId string) (*drive.FileList, error) {
 	return files, nil
 }
 
-func SaveImage(srv *drive.Service, img []byte, name string, parentId string) (*drive.File, error) {
-	f := &drive.File{
+func SaveImage(srv *gdrive.Service, img []byte, name string, parentId string) (*gdrive.File, error) {
+	f := &gdrive.File{
 		Name:     name,
 		MimeType: "image/jpeg",
 	}

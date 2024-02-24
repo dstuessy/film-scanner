@@ -15,8 +15,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const driveDirName = "Open Scanner"
-
 const boundaryWord = "MJPEGBOUNDARY"
 
 var frameInterval time.Duration
@@ -74,7 +72,7 @@ func main() {
 			}
 		}
 
-		folder, err := drive.CreateFolder(fileSrv, driveDirName, "")
+		folder, err := drive.CreateFolder(fileSrv, drive.DriveDirName, "")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -141,7 +139,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		dir, err := drive.FindFolder(srv, driveDirName)
+		dir, err := drive.FindFolder(srv, drive.DriveDirName)
 		if err != nil {
 			log.Fatal(err)
 		}

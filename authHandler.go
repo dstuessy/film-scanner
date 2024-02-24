@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/dstuessy/film-scanner/internal/auth"
+	"github.com/dstuessy/film-scanner/internal/render"
 )
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +19,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		Url: auth.OauthConf.AuthCodeURL("state"),
 	}
 
-	err := renderPage(w, "/login.html", data)
+	err := render.RenderPage(w, "/login.html", data)
 	if err != nil {
 		log.Fatal(err)
 	}
