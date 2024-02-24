@@ -18,14 +18,16 @@
     {{block "head" .}}{{end}}
   </head>
   <body class="h-full flex flex-col">
-    <div class="grow shrink flex flex-col items-center">
+    <div class="grow shrink flex flex-col items-center pb-20">
       <div class="grow shrink flex flex-col w-full max-w-screen-2xl">
-        <div class="grow shrink flex flex-col content p-3">
+        <div class="grow shrink flex flex-col content p-3 pt-5">
           {{block "body" .}}{{end}}
         </div>
       </div>
     </div>
-    <div class="grow-0 shrink-0 flex justify-center p-3 border-t-2">
+    <div
+      class="fixed bottom-0 start-0 end-0 dark:bg-black grow-0 shrink-0 flex justify-center p-3 border-t-2"
+    >
       <div class="grow shrink flex w-100 max-w-screen-2xl">
         <a class="inline-flex flex-row items-center" href="/">
           <img
