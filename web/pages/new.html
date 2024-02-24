@@ -4,8 +4,33 @@
   <div class="absolute bottom-4 end-0 start-0 text-center">
     <button
       hx-post="/capture/scan"
-      class="grow-0 shrink-0 w-16 h-16 border border-4 rounded rounded-full overflow-hidden before:bg-white before:block before:bottom-0 before:end-0 before:h-full before:opacity-20 before:start-0 before:top-0 before:w-full"
-    ></button>
+      hx-disabled-elt="this"
+      hx-swap="none"
+      class="group grow-0 shrink-0 relative w-16 h-16 rounded rounded-full overflow-hidden disabled:opacity-70"
+    >
+      <span
+        class="absolute top-0 start-0 inline-block h-full w-full border border-4 rounded rounded-full"
+      >
+        <span
+          class="absolute top-0 start-0 w-full h-full dark:bg-white opacity-20"
+        ></span>
+      </span>
+      <span
+        class="invisible group-disabled:visible absolute top-0 start-0 inline-block h-full w-full p-5 animate-spin text-center"
+      >
+        <svg
+          class="h-full w-full dark:fill-white"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm8 12c0 4.418-3.582 8-8 8s-8-3.582-8-8 3.582-8 8-8 8 3.582 8 8zm-19 0c0-6.065 4.935-11 11-11v2c-4.962 0-9 4.038-9 9 0 2.481 1.009 4.731 2.639 6.361l-1.414 1.414.015.014c-2-1.994-3.24-4.749-3.24-7.789z"
+          />
+        </svg>
+      </span>
+    </button>
   </div>
 </div>
 {{end}} {{define "footer"}}
