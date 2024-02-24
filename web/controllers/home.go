@@ -1,4 +1,4 @@
-package main
+package controllers
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ import (
 	gdrive "google.golang.org/api/drive/v3"
 )
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := auth.CheckToken(w, r)
 	if err != nil {
 		return

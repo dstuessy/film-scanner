@@ -1,4 +1,4 @@
-package main
+package controllers
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/dstuessy/film-scanner/internal/render"
 )
 
-func loginHandler(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Url string
 	}{
@@ -25,7 +25,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func authCallbackHandler(w http.ResponseWriter, r *http.Request) {
+func AuthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	tok, err := auth.OauthConf.Exchange(
 		context.Background(), r.URL.Query().Get("code"))
 	if err != nil {
