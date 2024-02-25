@@ -14,8 +14,6 @@ import (
 
 const boundaryWord = "MJPEGBOUNDARY"
 
-var frameInterval = 50 * time.Millisecond
-
 func StreamHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := auth.CheckToken(w, r)
 	if err != nil {
@@ -27,12 +25,9 @@ func StreamHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 
 	for {
-		time.Sleep(frameInterval)
+		time.Sleep(camera.FrameInterval)
 
-		img, err := camera.CaptureFrame()
-		if err != nil {
-			log.Println(err)
-		}
+		img := <-camera.GetStream()
 
 		header := strings.Join([]string{
 			fmt.Sprintf("\r\n--%s", boundaryWord),
@@ -73,10 +68,7 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	img, err := camera.CaptureFrame()
-	if err != nil {
-		log.Println(err)
-	}
+	img := <-camera.GetStream()
 
 	name := fmt.Sprintf("image-%d.jpg", time.Now().Unix())
 	if _, err := drive.SaveImage(srv, img, name, dir.Id); err != nil {

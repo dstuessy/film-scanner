@@ -2,11 +2,17 @@ package camera
 
 import (
 	"errors"
+	"log"
+	"time"
 
 	"gocv.io/x/gocv"
 )
 
 var webcam *gocv.VideoCapture
+
+var stream = make(chan []byte)
+
+var FrameInterval = 50 * time.Millisecond
 
 func Open() error {
 	c, err := gocv.OpenVideoCapture(0)
@@ -16,6 +22,22 @@ func Open() error {
 
 	webcam = c
 
+	go func() {
+		for {
+			img, err := captureFrame()
+			if err != nil {
+				log.Println(err)
+				log.Println("Closing stream")
+				close(stream)
+				break
+			}
+
+			stream <- img
+
+			time.Sleep(FrameInterval)
+		}
+	}()
+
 	return nil
 }
 
@@ -23,7 +45,11 @@ func Close() error {
 	return webcam.Close()
 }
 
-func CaptureFrame() ([]byte, error) {
+func GetStream() chan []byte {
+	return stream
+}
+
+func captureFrame() ([]byte, error) {
 	img := gocv.NewMat()
 	defer img.Close()
 
