@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/dstuessy/film-scanner/internal/auth"
 
@@ -20,9 +19,6 @@ func GetContext() context.Context {
 }
 
 func GetDriveFileService(token *oauth2.Token, ctx context.Context) (*gdrive.Service, error) {
-	if token.Expiry.Before(time.Now()) {
-		return nil, new(auth.TokenExpiredError)
-	}
 	return gdrive.NewService(ctx, option.WithTokenSource(auth.OauthConf.TokenSource(ctx, token)))
 }
 

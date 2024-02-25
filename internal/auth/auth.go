@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -49,6 +50,11 @@ func CheckToken(w http.ResponseWriter, r *http.Request) (*oauth2.Token, error) {
 			http.Error(w, "server error", http.StatusInternalServerError)
 		}
 	}
+
+	if token.Expiry.Before(time.Now()) {
+		return nil, new(TokenExpiredError)
+	}
+
 	return token, err
 }
 
