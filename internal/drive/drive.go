@@ -61,7 +61,7 @@ func FindFolder(srv *gdrive.Service, name string) (*gdrive.File, error) {
 }
 
 func ListFiles(srv *gdrive.Service, parentId string) (*gdrive.FileList, error) {
-	q := "mimeType='image/jpeg' or mimeType='application/vnd.google-apps.folder' and trashed=false"
+	q := "(mimeType='image/jpeg' or mimeType='application/vnd.google-apps.folder') and trashed=false"
 
 	if parentId != "" {
 		q = fmt.Sprintf("%s and '%s' in parents", q, parentId)
