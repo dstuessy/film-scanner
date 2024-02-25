@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"log"
 	"net/http"
 
@@ -14,22 +13,22 @@ import (
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := auth.CheckToken(w, r)
 	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
 	srv, err := drive.GetDriveFileService(token, drive.GetContext())
 	if err != nil {
-		if errors.Is(err, new(auth.TokenExpiredError)) {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		} else {
-			log.Fatal(err)
-		}
+		log.Println(err)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
+		return
 	}
 
 	dir, err := drive.FindFolder(srv, drive.DriveDirName)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
+		return
 	}
 
 	dirId := ""
@@ -40,7 +39,9 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	files, err := drive.ListFiles(srv, dirId)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
+		return
 	}
 
 	data := struct {
@@ -52,6 +53,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := render.RenderPage(w, "/index.html", data); err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
 	}
 }

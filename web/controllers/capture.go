@@ -54,25 +54,32 @@ func StreamHandler(w http.ResponseWriter, r *http.Request) {
 func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := auth.CheckToken(w, r)
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		log.Println(err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	srv, err := drive.GetDriveFileService(token, drive.GetContext())
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Internal Error", http.StatusInternalServerError)
+		return
 	}
 
 	dir, err := drive.FindFolder(srv, drive.DriveDirName)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		http.Error(w, "Internal Error", http.StatusInternalServerError)
+		return
 	}
 
 	img := <-camera.GetStream()
 
 	name := fmt.Sprintf("image-%d.jpg", time.Now().Unix())
 	if _, err := drive.SaveImage(srv, img, name, dir.Id); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
 	}
 }

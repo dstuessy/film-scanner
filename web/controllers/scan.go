@@ -12,9 +12,11 @@ func NewScanHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := auth.CheckToken(w, r)
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
 	}
 
 	if err := render.RenderPage(w, "/new.html", nil); err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		http.Error(w, "server error", http.StatusInternalServerError)
 	}
 }

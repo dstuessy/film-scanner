@@ -21,7 +21,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := render.RenderPage(w, "/login.html", data)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
 	}
 }
 
@@ -29,12 +30,16 @@ func AuthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	tok, err := auth.OauthConf.Exchange(
 		context.Background(), r.URL.Query().Get("code"))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	tokenJson, err := json.Marshal(tok)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
+		return
 	}
 
 	cookie := &http.Cookie{

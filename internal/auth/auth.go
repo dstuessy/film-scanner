@@ -3,7 +3,6 @@ package auth
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -40,15 +39,7 @@ func Setup() {
 func CheckToken(w http.ResponseWriter, r *http.Request) (*oauth2.Token, error) {
 	token, err := GetToken(r)
 	if err != nil {
-		switch {
-		case errors.Is(err, http.ErrNoCookie):
-			log.Println("Access Token cookie not found")
-			log.Println(err)
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-		default:
-			log.Println(err)
-			http.Error(w, "server error", http.StatusInternalServerError)
-		}
+		return nil, err
 	}
 
 	if token.Expiry.Before(time.Now()) {
