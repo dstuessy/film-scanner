@@ -1,0 +1,95 @@
+###################
+# arm32v7 setup stage
+###################
+
+FROM --platform=linux/arm32v7 arm32v7/alpine AS alpine-base
+LABEL maintainer="dstuessy"
+
+RUN apk update
+# RUN apk add git coreutils build-base musl opencv=4.8.1-r0 opencv-dev=4.8.1-r0 go=1.21.7-r0
+RUN apk add build-base alpine-sdk cmake linux-headers libc6-compat go=1.21.7-r0
+# RUN pkg-config --libs opencv4 > /tmp/opencv4_ldflags
+# RUN pkg-config --cflags opencv4 > /tmp/opencv4_cflags
+# RUN ldconfig -v
+
+###################
+# opencv build stage
+###################
+
+FROM alpine-base AS opencv-build
+
+ARG OPENCV_VERSION="4.8.1"
+ENV OPENCV_VERSION $OPENCV_VERSION
+ARG OPENCV_FILE="https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip"
+ENV OPENCV_FILE $OPENCV_FILE
+ARG OPENCV_CONTRIB_FILE="https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip"
+ENV OPENCV_CONTRIB_FILE $OPENCV_CONTRIB_FILE
+RUN mkdir /opencv-download
+WORKDIR /opencv-download
+RUN curl -Lo opencv.zip ${OPENCV_FILE} && \
+            unzip -q opencv.zip && \
+            curl -Lo opencv_contrib.zip ${OPENCV_CONTRIB_FILE} && \
+            unzip -q opencv_contrib.zip && \
+            rm opencv.zip opencv_contrib.zip
+RUN mkdir opencv-${OPENCV_VERSION}/build
+WORKDIR /opencv-download/opencv-${OPENCV_VERSION}/build
+RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
+                  -D WITH_IPP=OFF \
+                  -D WITH_OPENGL=OFF \
+                  -D WITH_QT=OFF \
+                  -D CMAKE_INSTALL_PREFIX=/usr/local \
+                  -D BUILD_SHARED_LIBS=OFF \
+                  -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-${OPENCV_VERSION}/modules \
+                  -D OPENCV_ENABLE_NONFREE=ON \
+                  -D WITH_JASPER=OFF \
+                  -D WITH_TBB=ON \
+                  -D BUILD_JPEG=ON \
+                  -D WITH_SIMD=ON \
+                  -D ENABLE_LIBJPEG_TURBO_SIMD=ON \
+                  -D BUILD_DOCS=OFF \
+                  -D BUILD_EXAMPLES=OFF \
+                  -D BUILD_TESTS=OFF \
+                  -D BUILD_PERF_TESTS=ON \
+                  -D BUILD_opencv_java=NO \
+                  -D BUILD_opencv_python=NO \
+                  -D BUILD_opencv_python2=NO \
+                  -D BUILD_opencv_python3=NO \
+                  -D OPENCV_GENERATE_PKGCONFIG=ON ..
+RUN make -j $(nproc --all)
+RUN make preinstall
+RUN make install
+RUN ldconfig /usr/local
+RUN pkg-config --libs opencv4 > /tmp/opencv4_ldflags
+RUN pkg-config --cflags opencv4 > /tmp/opencv4_cflags
+
+###################
+# go build stage
+###################
+
+FROM opencv-build AS film-scanner-build
+
+RUN cat /tmp/opencv4_ldflags
+RUN cat /tmp/opencv4_cflags
+RUN mkdir /app
+COPY . /app
+WORKDIR /app
+RUN go mod download
+# RUN env CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -tags musl -a -ldflags="-w -s" -installsuffix cgo
+# RUN env CGO_ENABLED=1 go build -v -ldflags='-linkmode external -extldflags "-static"' -installsuffix cgo
+RUN env CGO_CFLAGS="$(cat /tmp/opencv4_cflags)" \
+CGO_CXXFLAGS="$(cat /tmp/opencv4_cflags)" \
+CGO_LDFLAGS="$(cat /tmp/opencv4_ldflags)" \
+CGO_CPPFLAGS="$(cat /tmp/opencv4_cflags)" \
+go build -v -tags customenv -ldflags='-linkmode external -extldflags "-static"'
+
+CMD ["echo", "Build complete!"]
+
+###################
+# build output stage
+###################
+
+FROM film-scanner-build AS film-scanner-output
+
+COPY --from=film-scanner-build /app/film-scanner .
+
+CMD ["echo", "files exported"]
