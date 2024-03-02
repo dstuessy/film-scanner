@@ -1,0 +1,52 @@
+###################
+# setup stage
+###################
+
+FROM --platform=linux/arm32v7 dstuessy/opencv:arm32v7 AS opencv-base
+LABEL maintainer="dstuessy"
+
+WORKDIR /opencv-download/opencv-${OPENCV_VERSION}/build
+RUN make preinstall
+RUN make install
+RUN ldconfig
+RUN pkg-config --libs opencv4 > /tmp/opencv4_ldflags
+RUN pkg-config --cflags opencv4 > /tmp/opencv4_cflags
+
+###################
+# go build stage
+###################
+
+FROM opencv-base as film-scanner-build
+
+RUN mkdir /app
+COPY . /app
+WORKDIR /app
+RUN go mod download
+# CMD ["go", "build", "-v", "-trimpath", "-ldflags", "-extldflags -static"]
+# RUN go build -v -trimpath -ldflags="-extldflags -static"
+# ENV CGO_CPPFLAGS="-I/usr/local/include"
+# ENV CGO_CPPFLAGS="-I/usr/local/include -I/usr/local/include/opencv4"
+# RUN export CGO_CPPFLAGS="$(pkg-config --cflags-only-I --libs opencv4)"
+# RUN export CGO_LDFLAGS="$(pkg-config --cflags --libs opencv4)"
+# RUN echo "CGO_CPPFLAGS:" $CGO_CPPFLAGS
+# RUN echo "CGO_LDFLAGS:" $CGO_LDFLAGS
+# ENV CGO_LDFLAGS="-L/usr/local/lib -lopencv_core -lopencv_face -lopencv_videoio -lopencv_imgproc -lopencv_highgui -lopencv_imgcodecs -lopencv_objdetect -lopencv_features2d -lopencv_video -lopencv_dnn -lopencv_xfeatures2d"
+# RUN go build -v -ldflags="-s"
+RUN env CGO_CFLAGS="$(cat /tmp/opencv4_cflags)" \
+CGO_CXXFLAGS="$(cat /tmp/opencv4_cflags)" \
+CGO_LDFLAGS="$(cat /tmp/opencv4_ldflags)" \
+CGO_CPPFLAGS="$(cat /tmp/opencv4_cflags)" \
+go build -v -ldflags="-s"
+# go build -v -tags customenv -ldflags='-linkmode external -extldflags "-static"'
+
+CMD ["echo", "Build complete!"]
+
+###################
+# build output stage
+###################
+
+FROM film-scanner-build as film-scanner-output
+
+COPY --from=film-scanner-build /app/film-scanner tmp/film-scanner
+
+CMD ["echo", "files exported"]
