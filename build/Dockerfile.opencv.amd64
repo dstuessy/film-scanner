@@ -1,8 +1,8 @@
 ###################
-# arm32v7 setup stage
+# amd64 setup stage
 ###################
 
-FROM --platform=linux/arm32v7 arm32v7/golang:1.22-bullseye AS opencv-base
+FROM --platform=linux/amd64 amd64/golang:1.22-bullseye AS opencv-base
 LABEL maintainer="dstuessy"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -40,37 +40,13 @@ RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
 -D BUILD_EXAMPLES=OFF \
 -D BUILD_TESTS=OFF \
 -D BUILD_PERF_TESTS=ON \
--D BUILD_opencv_java=OFF \
+-D BUILD_opencv_java=NO \
 -D BUILD_opencv_python=NO \
 -D BUILD_opencv_python2=NO \
 -D BUILD_opencv_python3=NO \
--D ENABLE_NEON=ON \
--D ENABLE_VFPV3=ON \
 -D WITH_JASPER=OFF \
+-D WITH_TBB=ON \
 -D OPENCV_GENERATE_PKGCONFIG=ON ..
 RUN make -j $(nproc --all)
 
 CMD ["echo", "Build complete!"]
-
-# RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
-#                   -D WITH_IPP=OFF \
-#                   -D WITH_OPENGL=OFF \
-#                   -D WITH_QT=OFF \
-#                   -D CMAKE_INSTALL_PREFIX=/usr/local \
-#                   -D BUILD_SHARED_LIBS=OFF \
-#                   -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-${OPENCV_VERSION}/modules \
-#                   -D OPENCV_ENABLE_NONFREE=ON \
-#                   -D WITH_JASPER=OFF \
-#                   -D WITH_TBB=ON \
-#                   -D BUILD_JPEG=ON \
-#                   -D WITH_SIMD=ON \
-#                   -D ENABLE_LIBJPEG_TURBO_SIMD=ON \
-#                   -D BUILD_DOCS=OFF \
-#                   -D BUILD_EXAMPLES=OFF \
-#                   -D BUILD_TESTS=OFF \
-#                   -D BUILD_PERF_TESTS=ON \
-#                   -D BUILD_opencv_java=NO \
-#                   -D BUILD_opencv_python=NO \
-#                   -D BUILD_opencv_python2=NO \
-#                   -D BUILD_opencv_python3=NO \
-#                   -D OPENCV_GENERATE_PKGCONFIG=ON ..
