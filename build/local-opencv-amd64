@@ -1,0 +1,1 @@
+docker buildx build --push --platform linux/amd64 -f build/Dockerfile.opencv.amd64 -t dstuessy/opencv:amd64 .

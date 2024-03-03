@@ -1,0 +1,1 @@
+docker buildx build --load --builder remote-aws-arm --platform linux/arm32v7 -f build/Dockerfile.arm -t app:film-scanner .

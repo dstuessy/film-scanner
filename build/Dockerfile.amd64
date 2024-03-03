@@ -2,7 +2,7 @@
 # setup stage
 ###################
 
-FROM --platform=linux/arm32v7 dstuessy/opencv:arm32v7 AS opencv-base
+FROM --platform=linux/amd64 dstuessy/opencv:amd64 AS opencv-base
 LABEL maintainer="dstuessy"
 
 RUN apt-get update && apt-get install -y --no-install-recommends libc6 libc6-dev
