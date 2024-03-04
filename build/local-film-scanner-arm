@@ -1,1 +1,1 @@
-docker buildx build --platform linux/arm32v7 --load -t app:film-scanner -f build/Dockerfile.arm .
+docker buildx build --load --platform linux/arm32v7 -f build/Dockerfile.arm -t app:film-scanner .
