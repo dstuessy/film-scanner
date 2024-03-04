@@ -1,0 +1,1 @@
+aws ec2 describe-instance-status --instance-ids i-0049acc9ce4c19eab

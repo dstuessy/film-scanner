@@ -1,0 +1,67 @@
+###################
+# arm32v7 setup stage
+###################
+
+FROM --platform=linux/arm32v7 arm32v7/alpine AS alpine-base
+LABEL maintainer="dstuessy"
+
+RUN apk update
+RUN apk add coreutils gcc g++ build-base alpine-sdk cmake linux-headers libtool jpeg-dev zlib-static zlib-dev gnu-libiconv-dev libc6-compat go=1.21.7-r0
+
+###################
+# opencv build stage
+###################
+
+FROM alpine-base AS opencv-build
+
+ARG OPENCV_VERSION="4.8.1"
+ENV OPENCV_VERSION $OPENCV_VERSION
+ARG OPENCV_FILE="https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip"
+ENV OPENCV_FILE $OPENCV_FILE
+ARG OPENCV_CONTRIB_FILE="https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip"
+ENV OPENCV_CONTRIB_FILE $OPENCV_CONTRIB_FILE
+RUN mkdir /opencv-download
+WORKDIR /opencv-download
+RUN curl -Lo opencv.zip ${OPENCV_FILE} && \
+            unzip -q opencv.zip && \
+            curl -Lo opencv_contrib.zip ${OPENCV_CONTRIB_FILE} && \
+            unzip -q opencv_contrib.zip && \
+            rm opencv.zip opencv_contrib.zip
+RUN mkdir opencv-${OPENCV_VERSION}/build
+WORKDIR /opencv-download/opencv-${OPENCV_VERSION}/build
+
+RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
+    -D WITH_IPP=OFF \
+    -D WITH_OPENGL=OFF \
+    -D WITH_QT=OFF \
+    -D CMAKE_INSTALL_PREFIX=/usr/local \
+    -D BUILD_SHARED_LIBS=OFF \
+    -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-${OPENCV_VERSION}/modules \
+    -D OPENCV_ENABLE_NONFREE=ON \
+    -D WITH_JASPER=OFF \
+    -D WITH_TBB=ON \
+    -D BUILD_JPEG=ON \
+    -D WITH_SIMD=ON \
+    -D ENABLE_LIBJPEG_TURBO_SIMD=ON \
+    -D BUILD_DOCS=OFF \
+    -D BUILD_EXAMPLES=OFF \
+    -D BUILD_TESTS=OFF \
+    -D BUILD_PERF_TESTS=ON \
+    -D BUILD_opencv_java=NO \
+    -D BUILD_opencv_python=NO \
+    -D BUILD_opencv_python2=NO \
+    -D BUILD_opencv_python3=NO \
+    -D OPENCV_GENERATE_PKGCONFIG=ON ..
+
+RUN make -j $(nproc --all)
+RUN make preinstall
+RUN make install
+RUN ldconfig .
+RUN ldconfig /usr/local/lib
+RUN ldconfig /urs/lib
+# RUN ldconfig /usr/local/lib/opencv4
+# RUN echo "$(pkg-config --static --libs opencv4)" > /tmp/opencv4_ldflags
+RUN echo "-L/usr/local/lib -lopencv_gapi -lopencv_stitching -lopencv_aruco -lopencv_bgsegm -lopencv_bioinspired -lopencv_ccalib -lopencv_dnn_objdetect -lopencv_dnn_superres -lopencv_dpm -lopencv_face -lopencv_fuzzy -lopencv_hfs -lopencv_img_hash -lopencv_intensity_transform -lopencv_line_descriptor -lopencv_mcc -lopencv_quality -lopencv_rapid -lopencv_reg -lopencv_rgbd -lopencv_saliency -lopencv_stereo -lopencv_structured_light -lopencv_phase_unwrapping -lopencv_superres -lopencv_optflow -lopencv_surface_matching -lopencv_tracking -lopencv_highgui -lopencv_datasets -lopencv_text -lopencv_plot -lopencv_videostab -lopencv_videoio -lopencv_wechat_qrcode -lopencv_xfeatures2d -lopencv_shape -lopencv_ml -lopencv_ximgproc -lopencv_video -lopencv_xobjdetect -lopencv_objdetect -lopencv_calib3d -lopencv_imgcodecs -lopencv_features2d -lopencv_dnn -lopencv_flann -lopencv_xphoto -lopencv_photo -lopencv_imgproc -lopencv_core -L/usr/local/lib/opencv4/3rdparty -llibprotobuf -lade -littnotify -llibjpeg-turbo -llibwebp -llibpng -llibtiff -llibopenjp2 -lIlmImf -lquirc -L/lib -lz -ldl -lm -lpthread -lrt" > /tmp/opencv4_ldflags
+RUN echo "$(pkg-config --static --cflags opencv4)" > /tmp/opencv4_cflags
+
+CMD ["echo", "OpenCV build complete!"]
