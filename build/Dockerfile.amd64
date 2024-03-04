@@ -5,7 +5,12 @@
 FROM --platform=linux/amd64 dstuessy/opencv:amd64 AS opencv-base
 LABEL maintainer="dstuessy"
 
-RUN apt-get update && apt-get install -y --no-install-recommends libc6 libc6-dev
+RUN apt-get update && apt-get install -y --no-install-recommends \
+            libc6 libc6-dev \
+            git build-essential cmake pkg-config unzip libgtk2.0-dev \
+            curl ca-certificates libcurl4-openssl-dev libssl-dev \
+            libavcodec-dev libavformat-dev libswscale-dev libtbb2 libtbb-dev \
+            libjpeg62-turbo-dev libpng-dev libtiff-dev libdc1394-22-dev
 WORKDIR /opencv-download/opencv-${OPENCV_VERSION}/build
 RUN make preinstall
 RUN make install

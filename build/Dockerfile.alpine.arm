@@ -6,11 +6,7 @@ FROM --platform=linux/arm32v7 arm32v7/alpine AS alpine-base
 LABEL maintainer="dstuessy"
 
 RUN apk update
-# RUN apk add git coreutils build-base musl opencv=4.8.1-r0 opencv-dev=4.8.1-r0 go=1.21.7-r0
-RUN apk add build-base alpine-sdk cmake linux-headers libc6-compat go=1.21.7-r0
-# RUN pkg-config --libs opencv4 > /tmp/opencv4_ldflags
-# RUN pkg-config --cflags opencv4 > /tmp/opencv4_cflags
-# RUN ldconfig -v
+RUN apk add coreutils gcc g++ build-base alpine-sdk cmake linux-headers libtool jpeg-dev zlib-static zlib-dev gnu-libiconv-dev libc6-compat go=1.21.7-r0
 
 ###################
 # opencv build stage
@@ -33,34 +29,40 @@ RUN curl -Lo opencv.zip ${OPENCV_FILE} && \
             rm opencv.zip opencv_contrib.zip
 RUN mkdir opencv-${OPENCV_VERSION}/build
 WORKDIR /opencv-download/opencv-${OPENCV_VERSION}/build
+
 RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
-                  -D WITH_IPP=OFF \
-                  -D WITH_OPENGL=OFF \
-                  -D WITH_QT=OFF \
-                  -D CMAKE_INSTALL_PREFIX=/usr/local \
-                  -D BUILD_SHARED_LIBS=OFF \
-                  -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-${OPENCV_VERSION}/modules \
-                  -D OPENCV_ENABLE_NONFREE=ON \
-                  -D WITH_JASPER=OFF \
-                  -D WITH_TBB=ON \
-                  -D BUILD_JPEG=ON \
-                  -D WITH_SIMD=ON \
-                  -D ENABLE_LIBJPEG_TURBO_SIMD=ON \
-                  -D BUILD_DOCS=OFF \
-                  -D BUILD_EXAMPLES=OFF \
-                  -D BUILD_TESTS=OFF \
-                  -D BUILD_PERF_TESTS=ON \
-                  -D BUILD_opencv_java=NO \
-                  -D BUILD_opencv_python=NO \
-                  -D BUILD_opencv_python2=NO \
-                  -D BUILD_opencv_python3=NO \
-                  -D OPENCV_GENERATE_PKGCONFIG=ON ..
+    -D WITH_IPP=OFF \
+    -D WITH_OPENGL=OFF \
+    -D WITH_QT=OFF \
+    -D CMAKE_INSTALL_PREFIX=/usr/local \
+    -D BUILD_SHARED_LIBS=OFF \
+    -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-${OPENCV_VERSION}/modules \
+    -D OPENCV_ENABLE_NONFREE=ON \
+    -D WITH_JASPER=OFF \
+    -D WITH_TBB=ON \
+    -D BUILD_JPEG=ON \
+    -D WITH_SIMD=ON \
+    -D ENABLE_LIBJPEG_TURBO_SIMD=ON \
+    -D BUILD_DOCS=OFF \
+    -D BUILD_EXAMPLES=OFF \
+    -D BUILD_TESTS=OFF \
+    -D BUILD_PERF_TESTS=ON \
+    -D BUILD_opencv_java=NO \
+    -D BUILD_opencv_python=NO \
+    -D BUILD_opencv_python2=NO \
+    -D BUILD_opencv_python3=NO \
+    -D OPENCV_GENERATE_PKGCONFIG=ON ..
+
 RUN make -j $(nproc --all)
 RUN make preinstall
 RUN make install
-RUN ldconfig /usr/local
-RUN pkg-config --libs opencv4 > /tmp/opencv4_ldflags
-RUN pkg-config --cflags opencv4 > /tmp/opencv4_cflags
+RUN ldconfig .
+RUN ldconfig /usr/local/lib
+RUN ldconfig /urs/lib
+# RUN ldconfig /usr/local/lib/opencv4
+# RUN echo "$(pkg-config --static --libs opencv4)" > /tmp/opencv4_ldflags
+RUN echo "-L/usr/local/lib -lopencv_gapi -lopencv_stitching -lopencv_aruco -lopencv_bgsegm -lopencv_bioinspired -lopencv_ccalib -lopencv_dnn_objdetect -lopencv_dnn_superres -lopencv_dpm -lopencv_face -lopencv_fuzzy -lopencv_hfs -lopencv_img_hash -lopencv_intensity_transform -lopencv_line_descriptor -lopencv_mcc -lopencv_quality -lopencv_rapid -lopencv_reg -lopencv_rgbd -lopencv_saliency -lopencv_stereo -lopencv_structured_light -lopencv_phase_unwrapping -lopencv_superres -lopencv_optflow -lopencv_surface_matching -lopencv_tracking -lopencv_highgui -lopencv_datasets -lopencv_text -lopencv_plot -lopencv_videostab -lopencv_videoio -lopencv_wechat_qrcode -lopencv_xfeatures2d -lopencv_shape -lopencv_ml -lopencv_ximgproc -lopencv_video -lopencv_xobjdetect -lopencv_objdetect -lopencv_calib3d -lopencv_imgcodecs -lopencv_features2d -lopencv_dnn -lopencv_flann -lopencv_xphoto -lopencv_photo -lopencv_imgproc -lopencv_core -L/usr/local/lib/opencv4/3rdparty -llibprotobuf -lade -littnotify -llibjpeg-turbo -llibwebp -llibpng -llibtiff -llibopenjp2 -lIlmImf -lquirc -L/lib -lz -ldl -lm -lpthread -lrt" > /tmp/opencv4_ldflags
+RUN echo "$(pkg-config --static --cflags opencv4)" > /tmp/opencv4_cflags
 
 ###################
 # go build stage
@@ -76,11 +78,17 @@ WORKDIR /app
 RUN go mod download
 # RUN env CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -tags musl -a -ldflags="-w -s" -installsuffix cgo
 # RUN env CGO_ENABLED=1 go build -v -ldflags='-linkmode external -extldflags "-static"' -installsuffix cgo
-RUN env CGO_CFLAGS="$(cat /tmp/opencv4_cflags)" \
-CGO_CXXFLAGS="$(cat /tmp/opencv4_cflags)" \
-CGO_LDFLAGS="$(cat /tmp/opencv4_ldflags)" \
-CGO_CPPFLAGS="$(cat /tmp/opencv4_cflags)" \
-go build -v -tags customenv -ldflags='-linkmode external -extldflags "-static"'
+# RUN env CGO_CFLAGS="$(cat /tmp/opencv4_cflags)" \
+# CGO_CXXFLAGS="$(cat /tmp/opencv4_cflags)" \
+# CGO_LDFLAGS="$(cat /tmp/opencv4_ldflags)" \
+# CGO_CPPFLAGS="$(cat /tmp/opencv4_cflags)" \
+# RUN env CGO_ENABLED=1 \
+RUN env CGO_ENABLED=1 \
+  CGO_CFLAGS="$(cat /tmp/opencv4_cflags)" \
+  CGO_CXXFLAGS="$(cat /tmp/opencv4_cflags)" \
+  CGO_LDFLAGS="$(cat /tmp/opencv4_ldflags)" \
+  CGO_CPPFLAGS="$(cat /tmp/opencv4_cflags)" \
+  go build -v -tags customenv -ldflags='-linkmode external -extldflags "-static"'
 
 CMD ["echo", "Build complete!"]
 
