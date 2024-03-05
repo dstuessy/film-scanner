@@ -1,12 +1,36 @@
-{{ if not (eq (len .) 0) }} {{ range . }}
-<div class="shrink flex w-full">
-  <div class="py-3">
-    <span class="block">{{ .Name }}</span>
-    <span class="block">{{ .Id }}</span>
-    <span class="block">{{ .Parents }}</span>
+{{ if not (eq (len .) 0) }}
+<div
+  class="grid gap-4 grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 grid-rows-auto"
+>
+  {{ range . }}
+  <div
+    class="shrink flex flex-col w-full h-48 overflow-hidden p-3 border border-2 dark:border-white rounded rounded-lg"
+  >
+    <span
+      class="block shrink-0 mb-3 text-ellipsis overflow-hidden whitespace-nowrap"
+      >{{ .Name }}</span
+    >
+    <div
+      class="flex justify-center items-center shrink w-full h-full relative border border-2 dark:border-white"
+    >
+      <!-- <span -->
+      <!--   class="block absolute start-0 top-0 end-0 bottom-0" -->
+      <!--   style="background-image: url('{{ .IconLink }}'); background-repeat: no-repeat; background-size: contain; background-position: center;" -->
+      <!-- ></span> -->
+      <svg
+        class="w-9 dark:fill-white"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M5 8.5c0-.828.672-1.5 1.5-1.5s1.5.672 1.5 1.5c0 .829-.672 1.5-1.5 1.5s-1.5-.671-1.5-1.5zm9 .5l-2.519 4-2.481-1.96-4 5.96h14l-5-8zm8-4v14h-20v-14h20zm2-2h-24v18h24v-18z"
+        />
+      </svg>
+    </div>
   </div>
+  {{ end }}
 </div>
-{{ end }} {{ else }}
+{{ else }}
 <div class="grow shrink flex flex-col justify-center items-center">
   <span class="block text-xl mb-2">No scans started yet</span>
   <span class="block text-md">Start a new scan below</span>

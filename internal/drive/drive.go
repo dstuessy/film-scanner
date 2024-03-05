@@ -72,7 +72,7 @@ func ListFiles(srv *gdrive.Service, parentId string) (*gdrive.FileList, error) {
 	files, err := srv.Files.List().
 		PageSize(10).
 		Q(q).
-		Fields("nextPageToken, files(id, name)").
+		Fields("nextPageToken, files(id, name, thumbnailLink, iconLink)").
 		Spaces("drive").
 		Do()
 	if err != nil {
