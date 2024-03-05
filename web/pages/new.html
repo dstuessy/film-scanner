@@ -1,6 +1,14 @@
 {{define "body"}}
-<div class="grow relative flex flex-col justify-center">
-  <img class="" src="/capture/stream" alt="" />
+<div
+  class="grow relative flex flex-col justify-center"
+  style="
+    background-image: url(&quot;/capture/stream&quot;);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+  "
+>
+  <!-- <img class="" src="/capture/stream" alt="" /> -->
   <div class="absolute bottom-4 end-0 start-0 text-center">
     <button
       hx-post="/capture/scan"
