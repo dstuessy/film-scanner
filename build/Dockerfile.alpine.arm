@@ -24,14 +24,18 @@ RUN env CGO_ENABLED=1 \
   CGO_CPPFLAGS="$(cat /tmp/opencv4_cflags)" \
   go build -v -tags customenv -ldflags='-linkmode external -extldflags "-static"'
 
+RUN find /app/web -type f -name '*.go' -delete
+
 CMD ["echo", "Build complete!"]
 
 ###################
 # build output stage
 ###################
 
-FROM film-scanner-build AS film-scanner-output
+FROM scratch AS artifact
 
-COPY --from=film-scanner-build /app/film-scanner .
+COPY --from=film-scanner-build /app/film-scanner /film-scanner
+COPY --from=film-scanner-build /app/build/env.pi /.env
+COPY --from=film-scanner-build /app/web /web
 
 CMD ["echo", "files exported"]
