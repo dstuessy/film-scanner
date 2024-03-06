@@ -1,1 +1,5 @@
-docker buildx build --push --builder remote-aws-arm --platform linux/arm32v7 -f build/Dockerfile.opencv.arm -t dstuessy/opencv:arm32v7-alpine .
+docker buildx build --push \
+--builder remote-aws-arm \
+--platform linux/arm32v7 \
+-f build/Dockerfile.opencv.arm \
+-t dstuessy/opencv:arm32v7-alpine .
