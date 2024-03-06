@@ -1,1 +1,1 @@
-rsync -rav -e ssh --exclude="*.go" tmp/pi/ danielstuessy@filmscanner.local:/app/
+rsync -razP -e ssh --exclude="*.go" tmp/pi/ danielstuessy@filmscanner.local:/app/
