@@ -39,3 +39,31 @@ func NewWorkspaceHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "server error", http.StatusInternalServerError)
 	}
 }
+
+func NewProjectHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := auth.CheckToken(w, r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	fileSrv, err := drive.GetDriveFileService(token, drive.GetContext())
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "server error", http.StatusInternalServerError)
+	}
+
+	workspaceDir, err := drive.GetWorkspaceDir(fileSrv)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "server error", http.StatusInternalServerError)
+	}
+
+	folder, err := drive.CreateFolder(fileSrv, r.URL.Query().Get("dirname"), workspaceDir.Id)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "server error", http.StatusInternalServerError)
+	}
+
+	w.Write([]byte(folder.Id))
+}
