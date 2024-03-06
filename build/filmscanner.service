@@ -1,0 +1,15 @@
+[Unit]
+Description=Open Scanner Web Service
+
+Requires=network.target
+BindsTo=dev-video0.device
+After=syslog.target network-online.target dev-video0.device
+
+[Service]
+Type=simple
+WorkingDirectory=/app
+ExecStart=/app/film-scanner
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
