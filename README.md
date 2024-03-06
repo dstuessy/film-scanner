@@ -2,7 +2,7 @@
 
 ## Deployment on Raspberry Pi
 
-Deploy the build artifact.
+Deploy the build artifact once the setup below has been completed.
 
 ``` sh
 $ ./build/deploy.sh
