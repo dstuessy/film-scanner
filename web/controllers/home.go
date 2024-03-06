@@ -45,11 +45,13 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := struct {
-		Directory *gdrive.File
-		Files     []*gdrive.File
+		Directory   *gdrive.File
+		Breadcrumbs []string
+		Files       []*gdrive.File
 	}{
-		Directory: dir,
-		Files:     files.Files,
+		Directory:   dir,
+		Breadcrumbs: []string{drive.DriveDirName},
+		Files:       files.Files,
 	}
 
 	if err := render.RenderPage(w, "/index.html", data); err != nil {

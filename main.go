@@ -39,6 +39,8 @@ func main() {
 
 	http.HandleFunc("/resource/workspace/create", controllers.NewWorkspaceHandler)
 
+	// http.HandleFunc("/resource/folder/create", controllers.NewWorkspaceHandler)
+
 	http.HandleFunc("/capture/stream", controllers.StreamHandler)
 
 	http.HandleFunc("/capture/scan", controllers.CaptureScanHandler)

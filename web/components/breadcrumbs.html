@@ -1,0 +1,3 @@
+{{ if not (eq (len .) 0) }} {{ range . }} <span class="me-1">/</span
+><span class="me-1">{{ . }}</span> {{ end }}{{ else }}
+<span class="me-1">/</span> {{ end }}
