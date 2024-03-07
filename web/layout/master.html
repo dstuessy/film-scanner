@@ -74,19 +74,20 @@
         <span class="block mb-3"
           >What would you like your project to be called?</span
         >
-        <span class="flex items-center"
-          ><input
+        <form hx-post="/resource/project/create" class="flex items-center">
+          <input
             class="w-full px-0 bg-transparent bg-transparent border-0 border-b-2 border-black dark:border-white focus:!border-black focus:dark:!border-white focus:!outline-none focus:!ring-0"
             text="text"
+            name="projectName"
             placeholder=""
           />
           <button
-            hx-post="/resource/project/create"
+            type="submit"
             class="grow-0 shrink-0 ms-4 p-2 px-3 border-2 border-black dark:border-white rounded rounded-md"
           >
             Create
           </button>
-        </span>
+        </form>
       </div>
     </div>
   </body>
