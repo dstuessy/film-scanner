@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -38,4 +39,34 @@ func NewWorkspaceHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		http.Error(w, "server error", http.StatusInternalServerError)
 	}
+}
+
+func NewProjectHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := auth.CheckToken(w, r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	fileSrv, err := drive.GetDriveFileService(token, drive.GetContext())
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "server error", http.StatusInternalServerError)
+	}
+
+	workspaceDir, err := drive.GetWorkspaceDir(fileSrv)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "server error", http.StatusInternalServerError)
+	}
+
+	r.ParseForm()
+
+	folder, err := drive.CreateFolder(fileSrv, r.Form.Get("projectName"), workspaceDir.Id)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "server error", http.StatusInternalServerError)
+	}
+
+	w.Header().Set("HX-Redirect", fmt.Sprintf("/project/%s", folder.Id))
 }
