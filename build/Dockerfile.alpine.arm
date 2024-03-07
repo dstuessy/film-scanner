@@ -30,6 +30,6 @@ FROM scratch AS artifact
 COPY --from=film-scanner-build /app/film-scanner /film-scanner
 COPY --from=film-scanner-build /app/build/env.pi /.env
 COPY --from=film-scanner-build /app/web /web
-COPY --from=film-scanner-build /app/build/film-scanner.service
+COPY --from=film-scanner-build /app/build/film-scanner.service /film-scanner.service
 
 CMD ["echo", "files exported"]
