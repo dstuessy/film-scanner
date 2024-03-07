@@ -1,16 +1,23 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/dstuessy/film-scanner/internal/auth"
 	"github.com/dstuessy/film-scanner/internal/drive"
 	"github.com/dstuessy/film-scanner/internal/render"
+	"github.com/gorilla/mux"
 	gdrive "google.golang.org/api/drive/v3"
 )
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
+type Breadcrumb struct {
+	Name string
+	Link string
+}
+
+func ProjectHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := auth.CheckToken(w, r)
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -24,7 +31,14 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dir, err := drive.FindFolder(srv, drive.DriveDirName)
+	projectId, ok := mux.Vars(r)["id"]
+	if !ok {
+		log.Println(fmt.Sprintf("Project id not found in URL: %s", r.URL.Path))
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	}
+
+	dir, err := drive.GetFile(srv, projectId)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Server Error", http.StatusInternalServerError)
@@ -32,9 +46,11 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dirId := ""
+	dirname := ""
 
 	if dir != nil {
 		dirId = dir.Id
+		dirname = dir.Name
 	}
 
 	files, err := drive.ListFiles(srv, dirId)
@@ -51,12 +67,13 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		Directory: dir,
 		Breadcrumbs: []Breadcrumb{
-			{Name: drive.DriveDirName, Link: ""},
+			{Name: drive.DriveDirName, Link: "/"},
+			{Name: dirname, Link: ""},
 		},
 		Files: files.Files,
 	}
 
-	if err := render.RenderPage(w, "/index.html", data); err != nil {
+	if err := render.RenderPage(w, "/project.html", data); err != nil {
 		log.Println(err)
 		http.Error(w, "Server Error", http.StatusInternalServerError)
 	}

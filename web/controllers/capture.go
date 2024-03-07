@@ -59,6 +59,13 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	projectId := r.URL.Query()["project"]
+	if len(projectId) == 0 {
+		log.Println(fmt.Sprintf("Project id not found in URL: %s", r.URL.String()))
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	}
+
 	srv, err := drive.GetDriveFileService(token, drive.GetContext())
 	if err != nil {
 		log.Println(err)
@@ -67,17 +74,10 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dir, err := drive.FindFolder(srv, drive.DriveDirName)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal Error", http.StatusInternalServerError)
-		return
-	}
-
 	img := <-camera.GetStream()
 
 	name := fmt.Sprintf("image-%d.jpg", time.Now().Unix())
-	if _, err := drive.SaveImage(srv, img, name, dir.Id); err != nil {
+	if _, err := drive.SaveImage(srv, img, name, projectId[0]); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return

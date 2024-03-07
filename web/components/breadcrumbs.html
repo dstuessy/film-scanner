@@ -1,3 +1,4 @@
-{{ if not (eq (len .) 0) }} {{ range . }} <span class="me-1">/</span
-><span class="me-1">{{ . }}</span> {{ end }}{{ else }}
-<span class="me-1">/</span> {{ end }}
+{{ if not (eq (len .) 0) }} {{ range . }} <span class="me-1">/</span> {{ if eq
+.Link "" }}<span class="me-1">{{ .Name }}</span>{{ else }}<a href="{{ .Link }}"
+  >{{ .Name }}</a
+>{{end}} {{ end }}{{ else }} <span class="me-1">/</span> {{ end }}
