@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 
@@ -25,26 +26,29 @@ func init() {
 
 func main() {
 	defer camera.Close()
+	r := mux.NewRouter()
 
 	fs := http.FileServer(http.Dir("web/assets"))
-	http.Handle("/assets/", http.StripPrefix("/assets/", fs))
+	r.Handle("/assets/", http.StripPrefix("/assets/", fs))
 
-	http.HandleFunc("/", controllers.HomeHandler)
+	r.HandleFunc("/", controllers.HomeHandler)
 
-	http.HandleFunc("/login", controllers.LoginHandler)
+	r.HandleFunc("/project/{id}", controllers.ProjectHandler)
 
-	http.HandleFunc("/oauth2callback", controllers.AuthCallbackHandler)
+	r.HandleFunc("/project/{id}/scan", controllers.NewScanHandler)
 
-	http.HandleFunc("/scan/new", controllers.NewScanHandler)
+	r.HandleFunc("/login", controllers.LoginHandler)
 
-	http.HandleFunc("/resource/workspace/create", controllers.NewWorkspaceHandler)
+	r.HandleFunc("/oauth2callback", controllers.AuthCallbackHandler)
 
-	// http.HandleFunc("/resource/folder/create", controllers.NewWorkspaceHandler)
+	r.HandleFunc("/resource/workspace/create", controllers.NewWorkspaceHandler)
 
-	http.HandleFunc("/capture/stream", controllers.StreamHandler)
+	r.HandleFunc("/resource/project/create", controllers.NewProjectHandler)
 
-	http.HandleFunc("/capture/scan", controllers.CaptureScanHandler)
+	r.HandleFunc("/capture/stream", controllers.StreamHandler)
+
+	r.HandleFunc("/capture/scan", controllers.CaptureScanHandler)
 
 	fmt.Println("Server is running on port 8080")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", r)
 }

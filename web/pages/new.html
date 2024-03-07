@@ -10,7 +10,7 @@
 >
   <div class="absolute bottom-4 end-0 start-0 text-center">
     <button
-      hx-post="/capture/scan"
+      hx-post="/capture/scan?project={{ .ProjectId }}"
       hx-disabled-elt="this"
       hx-swap="none"
       class="group grow-0 shrink-0 relative w-16 h-16 rounded rounded-full overflow-hidden disabled:opacity-70"
@@ -42,7 +42,7 @@
 </div>
 {{end}} {{define "footer"}}
 <a
-  href="/"
+  href="/project/{{ .ProjectId }}"
   class="ms-auto inline-flex items-center p-3 px-5 border border-2 border-black dark:border-white rounded rounded-md"
 >
   <svg
@@ -58,6 +58,6 @@
       d="M20 .755l-14.374 11.245 14.374 11.219-.619.781-15.381-12 15.391-12 .609.755z"
     />
   </svg>
-  <span> Library </span>
+  <span> Project </span>
 </a>
 {{end}}

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -65,5 +66,6 @@ func NewProjectHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "server error", http.StatusInternalServerError)
 	}
 
-	w.Write([]byte(folder.Id))
+	w.Header().Set("HX-Redirect", fmt.Sprintf("/project/%s", folder.Id))
+	// http.Redirect(w, r, fmt.Sprintf("/workspace/%s", folder.Id), http.StatusSeeOther)
 }
