@@ -6,24 +6,16 @@
   id="file-list"
   class="grow shrink flex flex-col justify-center items-center"
 >
-  <span class="block mb-6 text-center"
-    >No workspace available on Google Drive.</span
-  >
+  <span class="block mb-6 text-center">Project not found.</span>
 
-  <form
-    hx-post="/resource/workspace/create"
-    hx-target="#file-list"
-    hx-swap="outerHTML"
-  >
-    <span class="block text-center">
-      <button
-        type="submit"
-        class="p-3 px-5 border border-black dark:border-white rounded rounded-md"
-      >
-        Create a workspace
-      </button>
-    </span>
-  </form>
+  <span class="block text-center">
+    <a
+      href="/"
+      class="p-3 px-5 border border-black dark:border-white rounded rounded-md"
+    >
+      Go back to Library
+    </a>
+  </span>
 </div>
 {{ else }}
 <div class="flex flex-col">
@@ -32,14 +24,10 @@
 </div>
 {{end}} {{define "footer"}}
 <a
-  href="#"
-  onclick="
-    event.preventDefault();
-    document.getElementById('new-project-modal').classList.remove('hidden');
-  "
+  href="/project/{{ .Directory.Id }}/scan"
   class="ms-auto inline-flex items-center p-3 px-5 border border-2 border-black dark:border-white rounded rounded-md"
 >
-  <span>New Project</span>
+  <span>New Scan</span>
   <svg
     class="dark:fill-white ms-2 -me-2 w-4"
     width="24"

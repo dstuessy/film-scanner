@@ -60,6 +60,35 @@ func FindFolder(srv *gdrive.Service, name string) (*gdrive.File, error) {
 	return files.Files[0], nil
 }
 
+func GetFile(srv *gdrive.Service, id string) (*gdrive.File, error) {
+	file, err := srv.Files.Get(id).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
+}
+
+func GetWorkspaceDir(srv *gdrive.Service) (*gdrive.File, error) {
+	q := fmt.Sprintf("mimeType='application/vnd.google-apps.folder' and name='%s' and trashed=false", DriveDirName)
+
+	files, err := srv.Files.List().
+		PageSize(1).
+		Q(q).
+		Fields("files(id, name)").
+		Spaces("drive").
+		Do()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(files.Files) == 0 {
+		return nil, nil
+	}
+
+	return files.Files[0], nil
+}
+
 func ListFiles(srv *gdrive.Service, parentId string) (*gdrive.FileList, error) {
 	q := "(mimeType='image/jpeg' or mimeType='application/vnd.google-apps.folder') and trashed=false"
 
@@ -72,7 +101,7 @@ func ListFiles(srv *gdrive.Service, parentId string) (*gdrive.FileList, error) {
 	files, err := srv.Files.List().
 		PageSize(10).
 		Q(q).
-		Fields("nextPageToken, files(id, name, thumbnailLink, iconLink)").
+		Fields("nextPageToken, files(id, name, thumbnailLink, iconLink, mimeType)").
 		Spaces("drive").
 		Do()
 	if err != nil {
