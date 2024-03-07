@@ -26,9 +26,11 @@
   </form>
 </div>
 {{ else }}
-<div class="flex flex-col">
+<div class="grow flex flex-col">
   <div class="mb-4">{{ template "breadcrumbs.html" .Breadcrumbs }}</div>
-  <div class="grow shrink">{{ template "files.html" .Files }} {{ end }}</div>
+  <div class="grow shrink flex flex-col">
+    {{ template "files.html" .Files }} {{ end }}
+  </div>
 </div>
 {{end}} {{define "footer"}}
 <a
