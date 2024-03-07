@@ -128,3 +128,8 @@ func SaveImage(srv *gdrive.Service, img []byte, name string, parentId string) (*
 
 	return r, nil
 }
+
+func DeleteFile(srv *gdrive.Service, id string) error {
+	_, err := srv.Files.Update(id, &gdrive.File{Trashed: true}).Do()
+	return err
+}
