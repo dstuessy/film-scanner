@@ -29,7 +29,7 @@ func main() {
 	r := mux.NewRouter()
 
 	fs := http.FileServer(http.Dir("web/assets"))
-	r.Handle("/assets/", http.StripPrefix("/assets/", fs))
+	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", fs))
 
 	r.HandleFunc("/", controllers.HomeHandler)
 
