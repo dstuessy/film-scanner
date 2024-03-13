@@ -1,7 +1,6 @@
 package tiff
 
 import (
-	"log"
 	"unsafe"
 
 	"gocv.io/x/gocv"
@@ -96,7 +95,10 @@ func (tf *TiffField) Len() int {
 	return int(unsafe.Sizeof(tf.Tag) + unsafe.Sizeof(tf.Type) + unsafe.Sizeof(tf.Count) + unsafe.Sizeof(tf.Value))
 }
 
-func EncodeTiff(img gocv.Mat) ([]byte, error) {
+func EncodeTiff(bgr gocv.Mat) ([]byte, error) {
+	img := gocv.NewMat()
+	defer img.Close()
+	gocv.CvtColor(bgr, &img, gocv.ColorBGRToRGB)
 	imgData := img.ToBytes()
 
 	// HEADER
