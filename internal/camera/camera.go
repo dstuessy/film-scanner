@@ -10,7 +10,7 @@ import (
 
 var webcam *gocv.VideoCapture
 
-var stream = make(chan []byte)
+var stream = make(chan gocv.Mat)
 
 var FrameInterval = 50 * time.Millisecond
 
@@ -45,24 +45,19 @@ func Close() error {
 	return webcam.Close()
 }
 
-func GetStream() chan []byte {
+func GetStream() chan gocv.Mat {
 	return stream
 }
 
-func captureFrame() ([]byte, error) {
+func captureFrame() (gocv.Mat, error) {
 	img := gocv.NewMat()
-	defer img.Close()
 
 	if ok := webcam.Read(&img); !ok {
-		return nil, errors.New("cannot read from webcam")
+		return img, errors.New("cannot read from webcam")
 	}
 	if img.Empty() {
-		return nil, errors.New("empty frame")
-	}
-	buf, err := gocv.IMEncode(".jpg", img)
-	if err != nil {
-		return nil, err
+		return img, errors.New("empty frame")
 	}
 
-	return buf.GetBytes(), nil
+	return img, nil
 }
