@@ -145,7 +145,7 @@ func EncodeTiff(img gocv.Mat) ([]byte, error) {
 		Tag:   0x106,
 		Type:  0x3,
 		Count: 0x1,
-		Value: 0x2, // ZeroIsBlack for full rgb
+		Value: 0x2, // RGB, full color
 	})
 
 	// StripOffsets
