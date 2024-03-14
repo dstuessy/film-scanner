@@ -32,16 +32,16 @@ func StreamHandler(w http.ResponseWriter, r *http.Request) {
 
 		img := <-camera.GetStream()
 		smallImg := gocv.NewMat()
-		defer smallImg.Close()
 
 		gocv.Resize(img, &smallImg, image.Point{}, 0.5, 0.5, gocv.InterpolationArea)
+
 		jpeg, err := gocv.IMEncode(".jpg", smallImg)
+		smallImg.Close()
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Internal Error", http.StatusInternalServerError)
 			return
 		}
-		img.Close()
 		jpegBytes := jpeg.GetBytes()
 
 		header := strings.Join([]string{
