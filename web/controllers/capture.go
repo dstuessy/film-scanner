@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"image"
 	"log"
 	"net/http"
 	"strings"
@@ -30,8 +31,11 @@ func StreamHandler(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(camera.FrameInterval)
 
 		img := <-camera.GetStream()
+		smallImg := gocv.NewMat()
+		defer smallImg.Close()
 
-		jpeg, err := gocv.IMEncode(".jpg", img)
+		gocv.Resize(img, &smallImg, image.Point{}, 0.5, 0.5, gocv.InterpolationArea)
+		jpeg, err := gocv.IMEncode(".jpg", smallImg)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Internal Error", http.StatusInternalServerError)
