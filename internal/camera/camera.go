@@ -51,6 +51,8 @@ func Open() error {
 			stream <- img
 
 			time.Sleep(FrameInterval)
+
+			img.Close()
 		}
 	}()
 
