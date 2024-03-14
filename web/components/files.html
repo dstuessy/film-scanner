@@ -32,7 +32,7 @@
     <div
       class="flex justify-center items-center shrink w-full h-full relative border border-2 border-black dark:border-white"
     >
-      {{ if eq .MimeType "image/jpeg" }}
+      {{ if or (eq .MimeType "image/jpeg") (eq .MimeType "image/tiff") }}
       <svg
         class="w-9 dark:fill-white"
         xmlns="http://www.w3.org/2000/svg"
