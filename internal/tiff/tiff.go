@@ -127,12 +127,13 @@ func EncodeTiff(bgr gocv.Mat) ([]byte, error) {
 	})
 
 	// BitsPerSample
-	fields = append(fields, &TiffField{
+	bitsPerSample := &TiffField{
 		Tag:   0x102,
-		Type:  0x3,
-		Count: 0x1,
-		Value: 0x8, // 8 bits per channel
-	})
+		Type:  0x1,
+		Count: 0x3,
+		Value: (uint32(0x8) | uint32(0x8)<<8 | uint32(0x8)<<16 | uint32(0x0)<<24), // 4 btyes in uint32 little endian
+	}
+	fields = append(fields, bitsPerSample)
 
 	// Compression
 	fields = append(fields, &TiffField{
@@ -184,12 +185,36 @@ func EncodeTiff(bgr gocv.Mat) ([]byte, error) {
 	}
 	fields = append(fields, stripByteCounts)
 
-	// PlanarConfiguration
+	// XResolution
+	xresolutionValue1 := encodeHex32(72)
+	xresolutionValue2 := encodeHex32(1)
+	xresolutionValue := append(xresolutionValue1[:], xresolutionValue2[:]...)
+	xresolution := &TiffField{
+		Tag:         0x11A,
+		Type:        0x5,
+		Count:       0x1,
+		OffsetValue: xresolutionValue,
+	}
+	fields = append(fields, xresolution)
+
+	// YResolution
+	yresolutionValue1 := encodeHex32(72)
+	yresolutionValue2 := encodeHex32(1)
+	yresolutionValue := append(yresolutionValue1[:], yresolutionValue2[:]...)
+	yresolution := &TiffField{
+		Tag:         0x11B,
+		Type:        0x5,
+		Count:       0x1,
+		OffsetValue: yresolutionValue,
+	}
+	fields = append(fields, yresolution)
+
+	// ResolutionUnit
 	fields = append(fields, &TiffField{
-		Tag:   0x11C,
+		Tag:   0x128,
 		Type:  0x3,
 		Count: 0x1,
-		Value: 0x1, // how color channels are stored per pixel
+		Value: 0x2, // inch,
 	})
 
 	// IFD 0
@@ -199,12 +224,24 @@ func EncodeTiff(bgr gocv.Mat) ([]byte, error) {
 		NextIfdOffset: 0x0, // this is the last ifd
 	}
 
-	stripOffsets.Value = uint32(h.Len() + ifd.Len())
+	offset := h.Len() + ifd.Len()
+
+	for _, field := range fields {
+		if len(field.OffsetValue) > 0 {
+			field.Value = uint32(offset)
+			offset = offset + len(field.OffsetValue)
+		}
+	}
 
 	buf := make([]byte, 0)
 	buf = append(buf, h.Encode()...)
 	buf = append(buf, ifd.Encode()...)
-	buf = append(buf, stripOffsets.OffsetValue...)
+
+	for _, field := range fields {
+		if len(field.OffsetValue) > 0 {
+			buf = append(buf, field.OffsetValue...)
+		}
+	}
 
 	return buf, nil
 }
