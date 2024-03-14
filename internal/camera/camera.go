@@ -14,7 +14,7 @@ var webcam *gocv.VideoCapture
 
 var stream = make(chan gocv.Mat)
 
-var FrameInterval = 50 * time.Millisecond
+var FrameInterval = 1000 * time.Millisecond
 
 func Open() error {
 	c, err := gocv.OpenVideoCapture(0)
