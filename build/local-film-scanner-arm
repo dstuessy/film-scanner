@@ -1,2 +1,6 @@
 mkdir -p tmp/pi && \
-docker buildx build --output tmp/pi --platform linux/arm32v7 -f build/Dockerfile.alpine.arm -t app:film-scanner .
+docker buildx build \
+--output tmp/pi \
+--platform linux/arm32v7 \
+-f build/Dockerfile.alpine.arm \
+-t app:film-scanner .
