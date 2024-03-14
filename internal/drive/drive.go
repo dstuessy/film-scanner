@@ -90,7 +90,7 @@ func GetWorkspaceDir(srv *gdrive.Service) (*gdrive.File, error) {
 }
 
 func ListFiles(srv *gdrive.Service, parentId string) (*gdrive.FileList, error) {
-	q := "(mimeType='image/jpeg' or mimeType='application/vnd.google-apps.folder') and trashed=false"
+	q := "(mimeType='image/jpeg' or mimeType='image/tiff' or mimeType='application/vnd.google-apps.folder') and trashed=false"
 
 	if parentId != "" {
 		q = fmt.Sprintf("%s and '%s' in parents", q, parentId)
