@@ -172,6 +172,7 @@ func CaptureStill() ([]byte, error) {
 	log.Println("Captured still image", fmt.Sprintf("%s", output))
 
 	mat := gocv.IMRead(imgLoc, gocv.IMReadColor)
+	defer mat.Close()
 
 	jpeg, err := gocv.IMEncode(".jpg", mat)
 	if err != nil {
