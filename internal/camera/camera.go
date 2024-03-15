@@ -2,6 +2,7 @@ package camera
 
 import (
 	"errors"
+	"image"
 	"log"
 	"os"
 	"strconv"
@@ -12,9 +13,54 @@ import (
 
 var webcam *gocv.VideoCapture
 
-var stream = make(chan gocv.Mat)
+var stream = make(chan ImageData)
 
 var FrameInterval = 60 * time.Millisecond
+
+type ImageData struct {
+	Rows int
+	Cols int
+	Data []byte
+}
+
+func DataFromMat(bgr gocv.Mat) ImageData {
+	rgb := gocv.NewMat()
+	defer rgb.Close()
+	gocv.CvtColor(bgr, &rgb, gocv.ColorBGRToRGB)
+
+	return ImageData{
+		Rows: rgb.Rows(),
+		Cols: rgb.Cols(),
+		Data: rgb.ToBytes(),
+	}
+}
+
+func ResizeData(img ImageData, scale float64) (ImageData, error) {
+	mat, err := gocv.NewMatFromBytes(img.Rows, img.Cols, gocv.MatTypeCV8UC3, img.Data)
+	defer mat.Close()
+	if err != nil {
+		return ImageData{}, err
+	}
+
+	gocv.Resize(mat, &mat, image.Point{}, scale, scale, gocv.InterpolationArea)
+
+	return DataFromMat(mat), nil
+}
+
+func EncodeJpeg(img ImageData) ([]byte, error) {
+	mat, err := gocv.NewMatFromBytes(img.Rows, img.Cols, gocv.MatTypeCV8UC3, img.Data)
+	defer mat.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	jpeg, err := gocv.IMEncode(".jpg", mat)
+	if err != nil {
+		return nil, err
+	}
+
+	return jpeg.GetBytes(), nil
+}
 
 func Open() error {
 	c, err := gocv.OpenVideoCapture(0)
@@ -51,8 +97,6 @@ func Open() error {
 			stream <- img
 
 			time.Sleep(FrameInterval)
-
-			img.Close()
 		}
 	}()
 
@@ -63,19 +107,20 @@ func Close() error {
 	return webcam.Close()
 }
 
-func GetStream() chan gocv.Mat {
+func GetStream() chan ImageData {
 	return stream
 }
 
-func captureFrame() (gocv.Mat, error) {
-	img := gocv.NewMat()
+func captureFrame() (ImageData, error) {
+	mat := gocv.NewMat()
+	defer mat.Close()
 
-	if ok := webcam.Read(&img); !ok {
-		return img, errors.New("cannot read from webcam")
+	if ok := webcam.Read(&mat); !ok {
+		return DataFromMat(mat), errors.New("cannot read from webcam")
 	}
-	if img.Empty() {
-		return img, errors.New("empty frame")
+	if mat.Empty() {
+		return DataFromMat(mat), errors.New("empty frame")
 	}
 
-	return img, nil
+	return DataFromMat(mat), nil
 }

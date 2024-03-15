@@ -3,26 +3,8 @@ package tiff
 import (
 	"unsafe"
 
-	"gocv.io/x/gocv"
+	"github.com/dstuessy/film-scanner/internal/camera"
 )
-
-type ImageData struct {
-	Rows int
-	Cols int
-	Data []byte
-}
-
-func DataFromMat(bgr gocv.Mat) ImageData {
-	rgb := gocv.NewMat()
-	defer rgb.Close()
-	gocv.CvtColor(bgr, &rgb, gocv.ColorBGRToRGB)
-
-	return ImageData{
-		Rows: rgb.Rows(),
-		Cols: rgb.Cols(),
-		Data: rgb.ToBytes(),
-	}
-}
 
 const (
 	EndianII = 0x4949
@@ -113,7 +95,7 @@ func (tf *TiffField) Len() int {
 	return int(unsafe.Sizeof(tf.Tag) + unsafe.Sizeof(tf.Type) + unsafe.Sizeof(tf.Count) + unsafe.Sizeof(tf.Value))
 }
 
-func EncodeTiff(img ImageData) ([]byte, error) {
+func EncodeTiff(img camera.ImageData) ([]byte, error) {
 	// HEADER
 	h := TiffHeader{
 		Endian:         EndianII,
