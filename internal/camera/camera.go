@@ -2,10 +2,13 @@ package camera
 
 import (
 	"errors"
+	"fmt"
 	"image"
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"gocv.io/x/gocv"
@@ -141,4 +144,36 @@ func captureFrame() (ImageData, error) {
 	}
 
 	return DataFromMat(mat), nil
+}
+
+func CaptureStill() (ImageData, error) {
+	if webcam != nil && webcam.IsOpened() {
+		return ImageData{}, errors.New("Camera already in use")
+	}
+
+	if os.Getenv("STILL_IMG_COMMAND") == "" {
+		return ImageData{}, errors.New("STILL_IMG_COMMAND not set")
+	}
+
+	imgLoc := "/tmp/capture.jpg"
+
+	imgCmd := fmt.Sprintf(os.Getenv("STILL_IMG_COMMAND"), imgLoc)
+	slicedCmd := strings.Split(imgCmd, " ")
+
+	log.Println("Capturing still image with command: ", imgCmd)
+
+	cmd := exec.Command(slicedCmd[0], slicedCmd[1:]...)
+
+	output, err := cmd.Output()
+	if err != nil {
+		return ImageData{}, err
+	}
+
+	log.Println("Captured still image", fmt.Sprintf("%s", output))
+
+	mat := gocv.IMRead(imgLoc, gocv.IMReadColor)
+
+	img := DataFromMat(mat)
+
+	return img, nil
 }
