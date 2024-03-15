@@ -62,7 +62,37 @@ func EncodeJpeg(img ImageData) ([]byte, error) {
 	return jpeg.GetBytes(), nil
 }
 
-func Open() error {
+func StartStream() error {
+	lastFrame := ImageData{}
+
+	OpenCamera()
+
+	go func() {
+		for {
+			if webcam == nil || !webcam.IsOpened() {
+				stream <- lastFrame
+				continue
+			}
+
+			img, err := captureFrame()
+			if err != nil {
+				log.Println(err)
+				log.Println("Closing stream")
+				close(stream)
+				break
+			}
+
+			stream <- img
+			lastFrame = img
+
+			time.Sleep(FrameInterval)
+		}
+	}()
+
+	return nil
+}
+
+func OpenCamera() error {
 	c, err := gocv.OpenVideoCapture(0)
 	if err != nil {
 		return err
@@ -84,27 +114,15 @@ func Open() error {
 
 	webcam = c
 
-	go func() {
-		for {
-			img, err := captureFrame()
-			if err != nil {
-				log.Println(err)
-				log.Println("Closing stream")
-				close(stream)
-				break
-			}
-
-			stream <- img
-
-			time.Sleep(FrameInterval)
-		}
-	}()
-
 	return nil
 }
 
-func Close() error {
-	return webcam.Close()
+func CloseCamera() error {
+	if err := webcam.Close(); err != nil {
+		return err
+	}
+	webcam = nil
+	return nil
 }
 
 func GetStream() chan ImageData {

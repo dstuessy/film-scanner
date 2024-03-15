@@ -19,13 +19,13 @@ func init() {
 
 	auth.Setup()
 
-	if err := camera.Open(); err != nil {
+	if err := camera.StartStream(); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func main() {
-	defer camera.Close()
+	defer camera.CloseCamera()
 	r := mux.NewRouter()
 
 	fs := http.FileServer(http.Dir("web/assets"))

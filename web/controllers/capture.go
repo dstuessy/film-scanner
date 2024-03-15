@@ -30,6 +30,12 @@ func StreamHandler(w http.ResponseWriter, r *http.Request) {
 
 		img := <-camera.GetStream()
 
+		if len(img.Data) == 0 {
+			log.Println("Stream Empty")
+			http.Error(w, "Internal Error", http.StatusInternalServerError)
+			return
+		}
+
 		smallImg, err := camera.ResizeData(img, 0.5)
 		if err != nil {
 			log.Println(err)
@@ -89,6 +95,12 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := camera.CloseCamera(); err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Error", http.StatusInternalServerError)
+		return
+	}
+
 	img := <-camera.GetStream()
 
 	tiff, err := tiff.EncodeTiff(img)
@@ -100,6 +112,12 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 
 	name := fmt.Sprintf("image-%d.tiff", time.Now().Unix())
 	if _, err := drive.SaveImage(srv, tiff, name, projectId[0]); err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := camera.OpenCamera(); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
