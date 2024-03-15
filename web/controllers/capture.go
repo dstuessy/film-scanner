@@ -89,7 +89,8 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	img := <-camera.GetStream()
+	mat := <-camera.GetStream()
+	img := tiff.DataFromMat(mat)
 
 	tiff, err := tiff.EncodeTiff(img)
 	if err != nil {

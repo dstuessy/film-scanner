@@ -6,6 +6,24 @@ import (
 	"gocv.io/x/gocv"
 )
 
+type ImageData struct {
+	Rows int
+	Cols int
+	Data []byte
+}
+
+func DataFromMat(bgr gocv.Mat) ImageData {
+	rgb := gocv.NewMat()
+	defer rgb.Close()
+	gocv.CvtColor(bgr, &rgb, gocv.ColorBGRToRGB)
+
+	return ImageData{
+		Rows: rgb.Rows(),
+		Cols: rgb.Cols(),
+		Data: rgb.ToBytes(),
+	}
+}
+
 const (
 	EndianII = 0x4949
 	EndianMM = 0x4D4D
@@ -95,12 +113,7 @@ func (tf *TiffField) Len() int {
 	return int(unsafe.Sizeof(tf.Tag) + unsafe.Sizeof(tf.Type) + unsafe.Sizeof(tf.Count) + unsafe.Sizeof(tf.Value))
 }
 
-func EncodeTiff(bgr gocv.Mat) ([]byte, error) {
-	img := gocv.NewMat()
-	defer img.Close()
-	gocv.CvtColor(bgr, &img, gocv.ColorBGRToRGB)
-	imgData := img.ToBytes()
-
+func EncodeTiff(img ImageData) ([]byte, error) {
 	// HEADER
 	h := TiffHeader{
 		Endian:         EndianII,
@@ -115,7 +128,7 @@ func EncodeTiff(bgr gocv.Mat) ([]byte, error) {
 		Tag:   0x100,
 		Type:  0x4,
 		Count: 0x1,
-		Value: uint32(img.Cols()), // horizontal Length
+		Value: uint32(img.Cols), // horizontal Length
 	})
 
 	// ImageLength
@@ -123,7 +136,7 @@ func EncodeTiff(bgr gocv.Mat) ([]byte, error) {
 		Tag:   0x101,
 		Type:  0x4,
 		Count: 0x1,
-		Value: uint32(img.Rows()), // vertical Length
+		Value: uint32(img.Rows), // vertical Length
 	})
 
 	// BitsPerSample
@@ -156,7 +169,7 @@ func EncodeTiff(bgr gocv.Mat) ([]byte, error) {
 		Tag:         0x111,
 		Type:        0x4,
 		Count:       0x1,
-		OffsetValue: imgData,
+		OffsetValue: img.Data,
 	}
 	fields = append(fields, stripOffsets)
 
@@ -173,7 +186,7 @@ func EncodeTiff(bgr gocv.Mat) ([]byte, error) {
 		Tag:   0x116,
 		Type:  0x4,
 		Count: 0x1,
-		Value: uint32(img.Rows()), // number of rows per strip
+		Value: uint32(img.Rows), // number of rows per strip
 	})
 
 	// StripByteCounts
@@ -181,7 +194,7 @@ func EncodeTiff(bgr gocv.Mat) ([]byte, error) {
 		Tag:   0x117,
 		Type:  0x4,
 		Count: 0x1,
-		Value: uint32(len(imgData)),
+		Value: uint32(len(img.Data)),
 	}
 	fields = append(fields, stripByteCounts)
 
