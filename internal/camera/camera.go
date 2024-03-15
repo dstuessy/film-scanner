@@ -146,13 +146,13 @@ func captureFrame() (ImageData, error) {
 	return DataFromMat(mat), nil
 }
 
-func CaptureStill() (ImageData, error) {
+func CaptureStill() ([]byte, error) {
 	if webcam != nil && webcam.IsOpened() {
-		return ImageData{}, errors.New("Camera already in use")
+		return nil, errors.New("Camera already in use")
 	}
 
 	if os.Getenv("STILL_IMG_COMMAND") == "" {
-		return ImageData{}, errors.New("STILL_IMG_COMMAND not set")
+		return nil, errors.New("STILL_IMG_COMMAND not set")
 	}
 
 	imgLoc := "/tmp/capture.jpg"
@@ -166,14 +166,17 @@ func CaptureStill() (ImageData, error) {
 
 	output, err := cmd.Output()
 	if err != nil {
-		return ImageData{}, err
+		return nil, err
 	}
 
 	log.Println("Captured still image", fmt.Sprintf("%s", output))
 
 	mat := gocv.IMRead(imgLoc, gocv.IMReadColor)
 
-	img := DataFromMat(mat)
+	jpeg, err := gocv.IMEncode(".jpg", mat)
+	if err != nil {
+		return nil, err
+	}
 
-	return img, nil
+	return jpeg.GetBytes(), nil
 }

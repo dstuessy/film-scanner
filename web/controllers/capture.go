@@ -10,7 +10,7 @@ import (
 	"github.com/dstuessy/film-scanner/internal/auth"
 	"github.com/dstuessy/film-scanner/internal/camera"
 	"github.com/dstuessy/film-scanner/internal/drive"
-	"github.com/dstuessy/film-scanner/internal/tiff"
+	// "github.com/dstuessy/film-scanner/internal/tiff"
 )
 
 const boundaryWord = "MJPEGBOUNDARY"
@@ -108,22 +108,22 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	img, err := camera.CaptureStill()
+	jpeg, err := camera.CaptureStill()
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
 	}
 
-	tiff, err := tiff.EncodeTiff(img)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal Error", http.StatusInternalServerError)
-		return
-	}
+	// tiff, err := tiff.EncodeTiff(img)
+	// if err != nil {
+	// 	log.Println(err)
+	// 	http.Error(w, "Internal Error", http.StatusInternalServerError)
+	// 	return
+	// }
 
-	name := fmt.Sprintf("image-%d.tiff", time.Now().Unix())
-	if _, err := drive.SaveImage(srv, tiff, name, projectId[0]); err != nil {
+	name := fmt.Sprintf("image-%d.jpeg", time.Now().Unix())
+	if _, err := drive.SaveImage(srv, jpeg, name, projectId[0]); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
