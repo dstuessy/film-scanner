@@ -20,10 +20,24 @@ var stream = make(chan ImageData)
 
 var FrameInterval = 60 * time.Millisecond
 
+var tmpdir string
+
 type ImageData struct {
 	Rows int
 	Cols int
 	Data []byte
+}
+
+func SetupTempDir() error {
+	dir, err := os.MkdirTemp("", os.Getenv("STILL_IMG_DIR"))
+	if err != nil {
+		log.Println("Error creating temp dir:", err)
+		return err
+	}
+	log.Println("Created temp dir:", dir)
+
+	tmpdir = dir
+	return nil
 }
 
 func DataFromMat(bgr gocv.Mat) ImageData {
@@ -155,12 +169,13 @@ func CaptureStill() ([]byte, error) {
 		return nil, errors.New("STILL_IMG_COMMAND not set")
 	}
 
-	imgLoc := "/tmp/capture.jpg"
+	imgName := fmt.Sprintf(os.Getenv("STILL_IMG_NAME"), time.Now().Unix())
+	imgLoc := fmt.Sprintf("%s/%s", tmpdir, imgName)
 
 	imgCmd := fmt.Sprintf(os.Getenv("STILL_IMG_COMMAND"), imgLoc)
 	slicedCmd := strings.Split(imgCmd, " ")
 
-	log.Println("Capturing still image with command: ", imgCmd)
+	log.Println("Capturing still image with command:", imgCmd)
 
 	cmd := exec.Command(slicedCmd[0], slicedCmd[1:]...)
 

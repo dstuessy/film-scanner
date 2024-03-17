@@ -17,6 +17,10 @@ func init() {
 		log.Fatal("Error loading .env file")
 	}
 
+	if err := camera.SetupTempDir(); err != nil {
+		log.Fatal(err)
+	}
+
 	auth.Setup()
 
 	if err := camera.StartStream(); err != nil {
