@@ -137,10 +137,10 @@ func captureFrame() (ImageData, error) {
 	defer mat.Close()
 
 	if ok := webcam.Read(&mat); !ok {
-		return DataFromMat(mat), errors.New("cannot read from webcam")
+		return ImageData{}, errors.New("cannot read from webcam")
 	}
 	if mat.Empty() {
-		return DataFromMat(mat), errors.New("empty frame")
+		return ImageData{}, errors.New("empty frame")
 	}
 
 	return DataFromMat(mat), nil
