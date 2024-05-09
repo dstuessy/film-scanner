@@ -86,7 +86,7 @@ func StartStream() error {
 
 	go func() {
 		for {
-			if webcam == nil || !webcam.IsOpened() {
+			if !IsCameraOpen() {
 				stream <- lastFrame
 				continue
 			}
@@ -108,7 +108,19 @@ func StartStream() error {
 	return nil
 }
 
+func IsCameraOpen() bool {
+	if webcam == nil {
+		return false
+	}
+
+	return webcam.IsOpened()
+}
+
 func OpenCamera() error {
+	if webcam != nil {
+		return nil
+	}
+
 	c, err := gocv.OpenVideoCapture(0)
 	if err != nil {
 		return err
@@ -135,6 +147,7 @@ func OpenCamera() error {
 
 func CloseCamera() error {
 	if err := webcam.Close(); err != nil {
+		webcam = nil
 		return err
 	}
 	webcam = nil
@@ -150,18 +163,18 @@ func captureFrame() (ImageData, error) {
 	defer mat.Close()
 
 	if ok := webcam.Read(&mat); !ok {
-		return ImageData{}, errors.New("cannot read from webcam")
+		return ImageData{}, errors.New("Cannot read from webcam")
 	}
 	if mat.Empty() {
-		return ImageData{}, errors.New("empty frame")
+		return ImageData{}, errors.New("Empty frame")
 	}
 
 	return DataFromMat(mat), nil
 }
 
 func CaptureStill() ([]byte, error) {
-	if webcam != nil && webcam.IsOpened() {
-		return nil, errors.New("Camera already in use")
+	if webcam != nil {
+		return nil, errors.New("Camera is still open for streaming")
 	}
 
 	if os.Getenv("STILL_IMG_COMMAND") == "" {

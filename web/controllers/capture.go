@@ -70,6 +70,7 @@ func StreamHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println("Stream disconnected")
+	return
 }
 
 func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
@@ -101,10 +102,13 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() {
+		if camera.IsCameraOpen() {
+			return
+		}
+
 		if err := camera.OpenCamera(); err != nil {
 			log.Println(err)
 			http.Error(w, "Internal Error", http.StatusInternalServerError)
-			return
 		}
 	}()
 
@@ -121,4 +125,6 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
 	}
+
+	return
 }
