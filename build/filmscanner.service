@@ -10,6 +10,7 @@ Type=simple
 WorkingDirectory=/app
 ExecStart=/app/film-scanner
 KillMode=process
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target

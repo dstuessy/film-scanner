@@ -95,8 +95,7 @@ func StartStream() error {
 			if err != nil {
 				log.Println(err)
 				log.Println("Closing stream")
-				close(stream)
-				break
+				continue
 			}
 
 			stream <- img
