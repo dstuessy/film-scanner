@@ -49,6 +49,8 @@ func main() {
 
 	r.HandleFunc("/resource/project/create", controllers.NewProjectHandler)
 
+	r.HandleFunc("/resource/project/{id}", controllers.GetProjectHandler)
+
 	r.HandleFunc("/resource/file/{id}/delete", controllers.DeleteFileHandler)
 
 	r.HandleFunc("/capture/stream", controllers.StreamHandler)

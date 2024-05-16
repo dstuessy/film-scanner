@@ -14,6 +14,8 @@ import (
 
 const DriveDirName = "Open Scanner"
 
+const PageSize = 10
+
 func GetContext() context.Context {
 	return context.Background()
 }
@@ -89,7 +91,7 @@ func GetWorkspaceDir(srv *gdrive.Service) (*gdrive.File, error) {
 	return files.Files[0], nil
 }
 
-func ListFiles(srv *gdrive.Service, parentId string) (*gdrive.FileList, error) {
+func ListFiles(srv *gdrive.Service, parentId string, page string) (*gdrive.FileList, error) {
 	q := "(mimeType='image/jpeg' or mimeType='image/tiff' or mimeType='application/vnd.google-apps.folder') and trashed=false"
 
 	if parentId != "" {
@@ -99,8 +101,10 @@ func ListFiles(srv *gdrive.Service, parentId string) (*gdrive.FileList, error) {
 	fmt.Println(q)
 
 	files, err := srv.Files.List().
-		PageSize(10).
+		PageToken(page).
+		PageSize(PageSize).
 		Q(q).
+		OrderBy("name").
 		Fields("nextPageToken, files(id, name, thumbnailLink, iconLink, mimeType)").
 		Spaces("drive").
 		Do()

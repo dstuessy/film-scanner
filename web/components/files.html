@@ -1,11 +1,17 @@
-{{ if not (eq (len .) 0) }}
+{{ if not (eq (len .Files) 0) }} {{ $dirId := .Directory.Id}} {{ $nextPage :=
+.NextPageToken }} {{ $last := (sub (len .Files) 1) }} {{ range $i, $f := .Files
+}} {{ if and (eq $i $last) (not (eq $nextPage "")) }}
 <div
-  class="grid gap-4 grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 grid-rows-auto"
+  class="shrink flex flex-col w-full h-48 overflow-hidden p-3 border border-2 border-black dark:border-white rounded rounded-lg"
+  hx-get="/resource/project/{{ $dirId }}?page={{ $nextPage }}"
+  hx-trigger="revealed"
+  hx-swap="afterend"
 >
-  {{ range . }}
+  {{ else }}
   <div
     class="shrink flex flex-col w-full h-48 overflow-hidden p-3 border border-2 border-black dark:border-white rounded rounded-lg"
   >
+    {{ end }}
     <div class="block grow flex justify-between items-center pb-3">
       <span
         class="block grow-1 shrink-1 text-ellipsis overflow-hidden whitespace-nowrap"

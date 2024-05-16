@@ -53,7 +53,7 @@ func ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		dirname = dir.Name
 	}
 
-	files, err := drive.ListFiles(srv, dirId)
+	files, err := drive.ListFiles(srv, dirId, "")
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Server Error", http.StatusInternalServerError)
@@ -61,16 +61,18 @@ func ProjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := struct {
-		Directory   *gdrive.File
-		Breadcrumbs []Breadcrumb
-		Files       []*gdrive.File
+		Directory     *gdrive.File
+		Breadcrumbs   []Breadcrumb
+		NextPageToken string
+		Files         []*gdrive.File
 	}{
 		Directory: dir,
 		Breadcrumbs: []Breadcrumb{
 			{Name: drive.DriveDirName, Link: "/"},
 			{Name: dirname, Link: ""},
 		},
-		Files: files.Files,
+		NextPageToken: files.NextPageToken,
+		Files:         files.Files,
 	}
 
 	if err := render.RenderPage(w, "/project.html", data); err != nil {

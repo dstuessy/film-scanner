@@ -29,7 +29,11 @@
 <div class="grow flex flex-col">
   <div class="mb-4">{{ template "breadcrumbs.html" .Breadcrumbs }}</div>
   <div class="grow shrink flex flex-col">
-    {{ template "files.html" .Files }} {{ end }}
+    <div
+      class="grid gap-4 grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 grid-rows-auto"
+    >
+      {{ template "files.html" . }} {{ end }}
+    </div>
   </div>
 </div>
 {{end}} {{define "footer"}}
