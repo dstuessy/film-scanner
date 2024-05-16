@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"gocv.io/x/gocv"
+	"gocv.io/x/gocv/contrib"
 )
 
 var webcam *gocv.VideoCapture
@@ -200,6 +201,12 @@ func CaptureStill() ([]byte, error) {
 
 	mat := gocv.IMRead(imgLoc, gocv.IMReadColor)
 	defer mat.Close()
+
+	gocv.BitwiseNot(mat, &mat)
+
+	wb := contrib.NewSimpleWB()
+
+	wb.BalanceWhite(mat, &mat)
 
 	jpeg, err := gocv.IMEncode(".jpg", mat)
 	if err != nil {
