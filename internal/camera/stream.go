@@ -1,6 +1,7 @@
 package camera
 
 import (
+	"errors"
 	"gocv.io/x/gocv"
 	"log"
 	"time"
