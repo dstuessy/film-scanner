@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/dstuessy/film-scanner/internal/auth"
+	"github.com/dstuessy/film-scanner/internal/cache"
 	"github.com/dstuessy/film-scanner/internal/camera"
 	"github.com/dstuessy/film-scanner/web/controllers"
 	"github.com/joho/godotenv"
@@ -18,6 +20,10 @@ func init() {
 	}
 
 	if err := camera.SetupTempDir(); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := cache.SetupCacheDir(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -52,6 +58,10 @@ func main() {
 	r.HandleFunc("/resource/project/{id}", controllers.GetProjectHandler)
 
 	r.HandleFunc("/resource/file/{id}/delete", controllers.DeleteFileHandler)
+
+	r.HandleFunc("/resource/cache/{project}/upload", controllers.UploadCacheHandler)
+
+	r.HandleFunc("/resource/cache/{project}/file/{file}/delete", controllers.DeleteCacheFileHandler)
 
 	r.HandleFunc("/capture/stream", controllers.StreamHandler)
 

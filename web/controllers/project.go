@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/dstuessy/film-scanner/internal/auth"
+	"github.com/dstuessy/film-scanner/internal/cache"
 	"github.com/dstuessy/film-scanner/internal/drive"
 	"github.com/dstuessy/film-scanner/internal/render"
 	"github.com/gorilla/mux"
@@ -60,10 +61,18 @@ func ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cacheFiles, err := cache.ReadProject(projectId)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	data := struct {
 		Directory     *gdrive.File
 		Breadcrumbs   []Breadcrumb
 		NextPageToken string
+		Cache         []string
 		Files         []*gdrive.File
 	}{
 		Directory: dir,
@@ -72,6 +81,7 @@ func ProjectHandler(w http.ResponseWriter, r *http.Request) {
 			{Name: dirname, Link: ""},
 		},
 		NextPageToken: files.NextPageToken,
+		Cache:         cacheFiles,
 		Files:         files.Files,
 	}
 

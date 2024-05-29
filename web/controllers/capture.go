@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"github.com/dstuessy/film-scanner/internal/auth"
+	"github.com/dstuessy/film-scanner/internal/cache"
 	"github.com/dstuessy/film-scanner/internal/camera"
-	"github.com/dstuessy/film-scanner/internal/drive"
+	// "github.com/dstuessy/film-scanner/internal/drive"
 	// "github.com/dstuessy/film-scanner/internal/tiff"
 )
 
@@ -74,8 +75,7 @@ func StreamHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
-	token, err := auth.CheckToken(w, r)
-	if err != nil {
+	if _, err := auth.CheckToken(w, r); err != nil {
 		log.Println(err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -88,13 +88,13 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	srv, err := drive.GetDriveFileService(token, drive.GetContext())
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		http.Error(w, "Internal Error", http.StatusInternalServerError)
-		return
-	}
+	// srv, err := drive.GetDriveFileService(token, drive.GetContext())
+	// if err != nil {
+	// 	log.Println(err)
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	http.Error(w, "Internal Error", http.StatusInternalServerError)
+	// 	return
+	// }
 
 	if err := camera.CloseCamera(); err != nil {
 		log.Println(err)
@@ -119,11 +119,17 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// name := fmt.Sprintf("image-%d.jpeg", time.Now().Unix())
+	// if _, err := drive.SaveImage(srv, jpeg, name, projectId[0]); err != nil {
+	// 	log.Println(err)
+	// 	http.Error(w, "Internal Error", http.StatusInternalServerError)
+	// 	return
+	// }
+
 	name := fmt.Sprintf("image-%d.jpeg", time.Now().Unix())
-	if _, err := drive.SaveImage(srv, jpeg, name, projectId[0]); err != nil {
+	if err := cache.CacheImage(jpeg, name, projectId[0]); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
-		return
 	}
 
 	return

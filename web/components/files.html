@@ -2,7 +2,7 @@
 .NextPageToken }} {{ $last := (sub (len .Files) 1) }} {{ range $i, $f := .Files
 }} {{ if and (eq $i $last) (not (eq $nextPage "")) }}
 <div
-  class="shrink flex flex-col w-full h-48 overflow-hidden p-3 border border-2 border-black dark:border-white rounded rounded-lg"
+  class="shrink flex flex-col w-full h-48 overflow-hidden p-3 border border-2 border-black dark:border-white rounded rounded-lg disabled:opacity-70"
   hx-get="/resource/project/{{ $dirId }}?page={{ $nextPage }}"
   hx-trigger="revealed"
   hx-swap="afterend"
