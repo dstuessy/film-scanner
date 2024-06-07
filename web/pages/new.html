@@ -139,11 +139,6 @@
 
   function relativeCoordinatesForEvent(mouseEvent) {
     const { x: streamX, y: streamY } = stream.getBoundingClientRect();
-    /*
-    const { x: imgX, y: imgY } = streamImage.getBoundingClientRect();
-    const deltaX = imgX - streamX;
-    const deltaY = imgY - streamY;
-    */
 
     return {
       x: mouseEvent.clientX - streamX,
