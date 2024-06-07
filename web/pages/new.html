@@ -8,9 +8,11 @@
     background-position: center;
   "
 >
+  <canvas id="stream-canvas" class="w-full" style="aspect-ratio: 16/9"></canvas>
   <div class="absolute bottom-4 end-0 start-0 text-center">
     <button
-      hx-post="/capture/scan?project={{ .ProjectId }}"
+      id="scan-button"
+      hx-post="/capture/scan?project={{ .ProjectId }}&x=0&y=0&w=0&h=0"
       hx-disabled-elt="this"
       hx-swap="none"
       class="group grow-0 shrink-0 relative w-16 h-16 rounded rounded-full overflow-hidden disabled:opacity-70"
@@ -60,4 +62,74 @@
   </svg>
   <span> Project </span>
 </a>
-{{end}}
+{{end}} {{ define "scripts" }}
+<script>
+  const scanButton = document.getElementById("scan-button");
+  const scanUrl = new URL(
+    scanButton.getAttribute("hx-post"),
+    document.location.origin,
+  );
+  const streamCanvas = document.getElementById("stream-canvas");
+  const ctx = streamCanvas.getContext("2d");
+  const rectColor = "magenta";
+  const cropRect = { x: 0, y: 0, w: 0, h: 0 };
+  let mouseDown = false;
+
+  streamCanvas.width = streamCanvas.clientWidth;
+  streamCanvas.height = streamCanvas.clientHeight;
+
+  const draw = () => {
+    streamCanvas.width = streamCanvas.width; // clear canvas
+
+    ctx.strokeStyle = rectColor;
+    ctx.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+
+    requestAnimationFrame(draw);
+  };
+
+  requestAnimationFrame(draw);
+
+  streamCanvas.addEventListener("mousedown", (e) => {
+    const { x, y } = relativeCoordinatesForEvent(e);
+    cropRect.x = x;
+    cropRect.y = y;
+    mouseDown = true;
+  });
+
+  streamCanvas.addEventListener("mousemove", (e) => {
+    if (mouseDown) {
+      const { x, y } = relativeCoordinatesForEvent(e);
+      cropRect.w = x - cropRect.x;
+      cropRect.h = y - cropRect.y;
+    }
+  });
+
+  window.addEventListener("mouseup", (e) => {
+    mouseDown = false;
+    const { width: streamWidth, height: streamHeight } =
+      streamCanvas.getBoundingClientRect();
+
+    scanUrl.searchParams.set("x", cropRect.x / streamWidth);
+    scanUrl.searchParams.set("y", cropRect.y / streamHeight);
+    scanUrl.searchParams.set("w", cropRect.w / streamWidth);
+    scanUrl.searchParams.set("h", cropRect.h / streamHeight);
+    scanButton.setAttribute("hx-post", scanUrl.toString());
+    if (typeof htmx !== "undefined") {
+      htmx.process(scanButton);
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    streamCanvas.width = streamCanvas.width;
+    streamCanvas.height = streamCanvas.height;
+  });
+
+  function relativeCoordinatesForEvent(mouseEvent) {
+    const boundingRect = streamCanvas.getBoundingClientRect();
+    return {
+      x: mouseEvent.clientX - boundingRect.left,
+      y: mouseEvent.clientY - boundingRect.top,
+    };
+  }
+</script>
+{{ end }}

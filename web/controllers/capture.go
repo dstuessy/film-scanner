@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -112,9 +113,49 @@ func CaptureScanHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	jpeg, err := camera.CaptureStill()
-	if err != nil {
-		log.Println(err)
+	cropX := 0.0
+	cropY := 0.0
+	cropW := 0.0
+	cropH := 0.0
+
+	var cropErr error
+	if cropXParam := r.URL.Query().Get("x"); cropXParam != "" {
+		cropX, cropErr = strconv.ParseFloat(cropXParam, 64)
+		if cropErr != nil {
+			log.Println(cropErr)
+			http.Error(w, "Internal Error", http.StatusInternalServerError)
+			return
+		}
+	}
+	if cropYParam := r.URL.Query().Get("y"); cropYParam != "" {
+		cropY, cropErr = strconv.ParseFloat(cropYParam, 64)
+		if cropErr != nil {
+			log.Println(cropErr)
+			http.Error(w, "Internal Error", http.StatusInternalServerError)
+			return
+		}
+	}
+	if cropWParam := r.URL.Query().Get("w"); cropWParam != "" {
+		cropW, cropErr = strconv.ParseFloat(cropWParam, 64)
+		if cropErr != nil {
+			log.Println(cropErr)
+			http.Error(w, "Internal Error", http.StatusInternalServerError)
+			return
+		}
+	}
+	if cropHParam := r.URL.Query().Get("h"); cropHParam != "" {
+		cropH, cropErr = strconv.ParseFloat(cropHParam, 64)
+		if cropErr != nil {
+			log.Println(cropErr)
+			http.Error(w, "Internal Error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	crop := [4]float64{cropX, cropY, cropW, cropH}
+	jpeg, cropErr := camera.CaptureStill(crop)
+	if cropErr != nil {
+		log.Println(cropErr)
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
 	}

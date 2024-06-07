@@ -3,6 +3,7 @@ package camera
 import (
 	"errors"
 	"fmt"
+	"image"
 	"log"
 	"os"
 	"os/exec"
@@ -12,7 +13,6 @@ import (
 
 	"gocv.io/x/gocv"
 	"gocv.io/x/gocv/contrib"
-	// "gocv.io/x/gocv/contrib"
 )
 
 var webcam *gocv.VideoCapture
@@ -71,7 +71,7 @@ func CloseCamera() error {
 	return nil
 }
 
-func CaptureStill() ([]byte, error) {
+func CaptureStill(coords [4]float64) ([]byte, error) {
 	if webcam != nil {
 		return nil, errors.New("Camera is still open for streaming")
 	}
@@ -100,26 +100,41 @@ func CaptureStill() ([]byte, error) {
 	mat := gocv.IMRead(imgLoc, gocv.IMReadColor)
 	defer mat.Close()
 
-	frame := mat
+	// frame := mat
+	//
+	// outerFrame, debug, err := AutoCropFrame(mat, 0.6, 0.7, []float64{0.01, 0.07})
+	// defer outerFrame.Close()
+	// defer debug.Close()
+	// if err == nil {
+	// 	log.Println("Crop found in captured image")
+	// 	frame = outerFrame
+	// }
 
-	outerFrame, err := CropFilm(mat, 0.6, 0.7, 0.1, false)
-	if err == nil {
-		log.Println("film:", err)
-		frame = outerFrame
+	if coords[2] == 0 {
+		coords[2] = 1
 	}
 
-	film, err := CropFilm(frame, 0.7, 0.9, 0, true)
-	if err == nil {
-		log.Println("film:", err)
-		frame = film
+	if coords[3] == 0 {
+		coords[3] = 1
+	}
+
+	cropX := int(coords[0] * float64(mat.Cols()))
+	cropY := int(coords[1] * float64(mat.Rows()))
+	cropX2 := int((coords[0] + coords[2]) * float64(mat.Cols()))
+	cropY2 := int((coords[1] + coords[3]) * float64(mat.Rows()))
+	log.Println(cropX, cropY, cropX2, cropY2)
+	crop := mat.Region(image.Rect(cropX, cropY, cropX2, cropY2))
+
+	if crop.Empty() {
+		return nil, errors.New("Empty crop")
 	}
 
 	wb := contrib.NewSimpleWB()
-	wb.BalanceWhite(frame, &frame)
+	wb.BalanceWhite(crop, &crop)
 
-	gocv.BitwiseNot(frame, &frame)
+	gocv.BitwiseNot(crop, &crop)
 
-	jpeg, err := gocv.IMEncode(".jpg", frame)
+	jpeg, err := gocv.IMEncode(".jpg", crop)
 	if err != nil {
 		return nil, err
 	}
