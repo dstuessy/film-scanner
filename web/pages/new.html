@@ -89,7 +89,11 @@
   const streamImage = document.getElementById("stream-image");
 
   stream.addEventListener("mousedown", (e) => {
-    if (scanButton.contains(e.target)) {
+    if (
+      scanButton.contains(e.target) ||
+      e.target === streamCrop ||
+      streamCrop.contains(e.target)
+    ) {
       return;
     }
 
@@ -117,20 +121,20 @@
     }
 
     mouseDown = false;
-    const { x: streamX, y: streamY } = stream.getBoundingClientRect();
-    const { x: imgX, y: imgY } = streamImage.getBoundingClientRect();
-    const deltaX = imgX - streamX;
-    const deltaY = imgY - streamY;
-    const deltaW = streamImage.width - streamImage.clientWidth;
-    const deltaH = streamImage.height - streamImage.clientHeight;
-    const streamWidth = streamImage.clientWidth;
-    const streamHeight = streamImage.clientHeight;
     const { x, y, width, height } = streamCrop.getBoundingClientRect();
+    const {
+      x: imgX,
+      y: imgY,
+      width: imgWidth,
+      height: imgHeight,
+    } = streamImage.getBoundingClientRect();
+    const deltaX = x - imgX;
+    const deltaY = y - imgY;
 
-    scanUrl.searchParams.set("x", (x - deltaX) / streamWidth);
-    scanUrl.searchParams.set("y", (y - deltaY) / streamHeight);
-    scanUrl.searchParams.set("w", width / streamWidth);
-    scanUrl.searchParams.set("h", height / streamHeight);
+    scanUrl.searchParams.set("x", deltaX / imgWidth);
+    scanUrl.searchParams.set("y", deltaY / imgHeight);
+    scanUrl.searchParams.set("w", width / imgWidth);
+    scanUrl.searchParams.set("h", height / imgHeight);
     scanButton.setAttribute("hx-post", scanUrl.toString());
     if (typeof htmx !== "undefined") {
       htmx.process(scanButton);
@@ -145,5 +149,25 @@
       y: mouseEvent.clientY - streamY,
     };
   }
+
+  let cropMouseDown = false;
+
+  streamCrop.addEventListener("mousedown", (e) => {
+    cropMouseDown = true;
+  });
+
+  streamCrop.addEventListener("mousemove", (e) => {
+    if (cropMouseDown) {
+      const { x, y } = streamCrop.getBoundingClientRect();
+      const left = parseInt(streamCrop.style.left);
+      const top = parseInt(streamCrop.style.top);
+      streamCrop.style.left = left + e.movementX + "px";
+      streamCrop.style.top = top + e.movementY + "px";
+    }
+  });
+
+  window.addEventListener("mouseup", (e) => {
+    cropMouseDown = false;
+  });
 </script>
 {{ end }}
