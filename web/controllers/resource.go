@@ -222,12 +222,12 @@ func UploadCacheHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Internal Error", http.StatusInternalServerError)
 			return
 		}
-	}
 
-	if cache.ClearCache(projectId) != nil {
-		log.Println(err)
-		http.Error(w, "Internal Error", http.StatusInternalServerError)
-		return
+		if cache.DeleteImage(projectId, file) != nil {
+			log.Println(err)
+			http.Error(w, "Internal Error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.Header().Set("HX-Refresh", "true")
