@@ -3,7 +3,6 @@ package camera
 import (
 	"errors"
 	"fmt"
-	"image"
 	"log"
 	"os"
 	"os/exec"
@@ -12,7 +11,6 @@ import (
 	"time"
 
 	"gocv.io/x/gocv"
-	"gocv.io/x/gocv/contrib"
 )
 
 var webcam *gocv.VideoCapture
@@ -71,7 +69,7 @@ func CloseCamera() error {
 	return nil
 }
 
-func CaptureStill(coords [4]float64) ([]byte, error) {
+func CaptureStill() ([]byte, error) {
 	if webcam != nil {
 		return nil, errors.New("Camera is still open for streaming")
 	}
@@ -83,61 +81,34 @@ func CaptureStill(coords [4]float64) ([]byte, error) {
 	imgName := fmt.Sprintf(os.Getenv("STILL_IMG_NAME"), time.Now().Unix())
 	imgLoc := fmt.Sprintf("%s/%s", tmpdir, imgName)
 
-	imgCmd := fmt.Sprintf(os.Getenv("STILL_IMG_COMMAND"), imgLoc)
-	slicedCmd := strings.Split(imgCmd, " ")
+	// imgCmd := fmt.Sprintf(os.Getenv("STILL_IMG_COMMAND"), imgLoc)
+	imgCmds := strings.ReplaceAll(os.Getenv("STILL_IMG_COMMAND"), "{image}", imgLoc)
+	for _, imgCmd := range strings.Split(imgCmds, ";") {
+		slicedCmd := strings.Split(strings.Trim(imgCmd, " "), " ")
 
-	log.Println("Capturing still image with command:", imgCmd)
+		log.Println("Capturing still image with command:", imgCmd)
 
-	cmd := exec.Command(slicedCmd[0], slicedCmd[1:]...)
+		cmd := exec.Command(slicedCmd[0], slicedCmd[1:]...)
 
-	output, err := cmd.Output()
-	if err != nil {
-		return nil, err
+		output, err := cmd.Output()
+		log.Println(output)
+		if err != nil {
+			log.Println("Failed to capture still image with command:", imgCmd)
+			return nil, err
+		}
 	}
 
-	log.Println("Captured still image", fmt.Sprintf("%s", output))
+	log.Println("Captured still image")
 
-	mat := gocv.IMRead(imgLoc, gocv.IMReadColor)
-	defer mat.Close()
+	finalLoc := BuildFileName(imgLoc)
+	tiff, err := os.ReadFile(finalLoc)
+	return tiff, err
+}
 
-	// frame := mat
-	//
-	// outerFrame, debug, err := AutoCropFrame(mat, 0.6, 0.7, []float64{0.01, 0.07})
-	// defer outerFrame.Close()
-	// defer debug.Close()
-	// if err == nil {
-	// 	log.Println("Crop found in captured image")
-	// 	frame = outerFrame
-	// }
+func BuildFileName(name string) string {
+	return fmt.Sprintf("%s%s", name, os.Getenv("STILL_IMG_EXT"))
+}
 
-	if coords[2] == 0 {
-		coords[2] = 1
-	}
-
-	if coords[3] == 0 {
-		coords[3] = 1
-	}
-
-	cropX := int(coords[0] * float64(mat.Cols()))
-	cropY := int(coords[1] * float64(mat.Rows()))
-	cropX2 := int((coords[0] + coords[2]) * float64(mat.Cols()))
-	cropY2 := int((coords[1] + coords[3]) * float64(mat.Rows()))
-	log.Println(cropX, cropY, cropX2, cropY2)
-	crop := mat.Region(image.Rect(cropX, cropY, cropX2, cropY2))
-
-	if crop.Empty() {
-		return nil, errors.New("Empty crop")
-	}
-
-	wb := contrib.NewSimpleWB()
-	wb.BalanceWhite(crop, &crop)
-
-	gocv.BitwiseNot(crop, &crop)
-
-	jpeg, err := gocv.IMEncode(".jpg", crop)
-	if err != nil {
-		return nil, err
-	}
-
-	return jpeg.GetBytes(), nil
+func GetMimeType() string {
+	return os.Getenv("STILL_IMG_MIME")
 }

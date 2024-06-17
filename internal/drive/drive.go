@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/dstuessy/film-scanner/internal/auth"
+	"github.com/dstuessy/film-scanner/internal/camera"
 
 	"golang.org/x/oauth2"
 	gdrive "google.golang.org/api/drive/v3"
@@ -118,7 +119,7 @@ func ListFiles(srv *gdrive.Service, parentId string, page string) (*gdrive.FileL
 func SaveImage(srv *gdrive.Service, img []byte, name string, parentId string) (*gdrive.File, error) {
 	f := &gdrive.File{
 		Name:     name,
-		MimeType: "image/jpeg",
+		MimeType: camera.GetMimeType(),
 	}
 
 	if parentId != "" {
