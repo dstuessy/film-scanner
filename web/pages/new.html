@@ -12,20 +12,10 @@
     style="max-height: 100%; user-drag: none; -webkit-user-drag: none"
   />
 
-  <div
-    id="stream-crop"
-    class="absolute shadow shadow-md border border-2 border-black dark:border-white z-10"
-    style="left: 0; top: 0; width: 0; height: 0"
-  >
-    <div
-      class="absolute top-0 bottom-0 left-0 right-0 bg-black dark:bg-white opacity-20"
-    ></div>
-  </div>
-
   <div class="absolute bottom-4 end-0 start-0 text-center z-20">
     <button
       id="scan-button"
-      hx-post="/capture/scan?project={{ .ProjectId }}&x=0&y=0&w=0&h=0"
+      hx-post="/capture/scan?project={{ .ProjectId }}"
       hx-disabled-elt="this"
       hx-swap="none"
       class="group grow-0 shrink-0 relative w-16 h-16 rounded rounded-full overflow-hidden disabled:opacity-70"
@@ -75,99 +65,4 @@
   </svg>
   <span> Project </span>
 </a>
-{{end}} {{ define "scripts" }}
-<script>
-  const scanButton = document.getElementById("scan-button");
-  const scanUrl = new URL(
-    scanButton.getAttribute("hx-post"),
-    document.location.origin,
-  );
-  const stream = document.getElementById("stream");
-  const streamCrop = document.getElementById("stream-crop");
-  let mouseDown = false;
-  const cropCoords = { x: 0, y: 0 };
-  const streamImage = document.getElementById("stream-image");
-
-  stream.addEventListener("mousedown", (e) => {
-    if (
-      scanButton.contains(e.target) ||
-      e.target === streamCrop ||
-      streamCrop.contains(e.target)
-    ) {
-      return;
-    }
-
-    const { x, y } = relativeCoordinatesForEvent(e);
-    streamCrop.style.left = x + "px";
-    streamCrop.style.top = y + "px";
-    streamCrop.style.width = "0";
-    streamCrop.style.height = "0";
-    cropCoords.x = x;
-    cropCoords.y = y;
-    mouseDown = true;
-  });
-
-  stream.addEventListener("mousemove", (e) => {
-    if (mouseDown) {
-      const { x, y } = relativeCoordinatesForEvent(e);
-      streamCrop.style.width = x - cropCoords.x + "px";
-      streamCrop.style.height = y - cropCoords.y + "px";
-    }
-  });
-
-  window.addEventListener("mouseup", (e) => {
-    if (scanButton.contains(e.target)) {
-      return;
-    }
-
-    mouseDown = false;
-    const { x, y, width, height } = streamCrop.getBoundingClientRect();
-    const {
-      x: imgX,
-      y: imgY,
-      width: imgWidth,
-      height: imgHeight,
-    } = streamImage.getBoundingClientRect();
-    const deltaX = x - imgX;
-    const deltaY = y - imgY;
-
-    scanUrl.searchParams.set("x", deltaX / imgWidth);
-    scanUrl.searchParams.set("y", deltaY / imgHeight);
-    scanUrl.searchParams.set("w", width / imgWidth);
-    scanUrl.searchParams.set("h", height / imgHeight);
-    scanButton.setAttribute("hx-post", scanUrl.toString());
-    if (typeof htmx !== "undefined") {
-      htmx.process(scanButton);
-    }
-  });
-
-  function relativeCoordinatesForEvent(mouseEvent) {
-    const { x: streamX, y: streamY } = stream.getBoundingClientRect();
-
-    return {
-      x: mouseEvent.clientX - streamX,
-      y: mouseEvent.clientY - streamY,
-    };
-  }
-
-  let cropMouseDown = false;
-
-  streamCrop.addEventListener("mousedown", (e) => {
-    cropMouseDown = true;
-  });
-
-  streamCrop.addEventListener("mousemove", (e) => {
-    if (cropMouseDown) {
-      const { x, y } = streamCrop.getBoundingClientRect();
-      const left = parseInt(streamCrop.style.left);
-      const top = parseInt(streamCrop.style.top);
-      streamCrop.style.left = left + e.movementX + "px";
-      streamCrop.style.top = top + e.movementY + "px";
-    }
-  });
-
-  window.addEventListener("mouseup", (e) => {
-    cropMouseDown = false;
-  });
-</script>
-{{ end }}
+{{end}}
